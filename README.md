@@ -22,7 +22,7 @@ You can download pretrained tokenization model from the list below.
 
 ## Unit Language Model (ULM)
 You can download pretrained unit language model from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) on training new models using fairseq.
-| NAST Model | Download Link |
+| ULM Model | Download Link |
 |-----------------|-----------------|
 | NAST + 50 units | Row 1, Column 2 |
 | NAST + 100 units | Row 2, Column 2 |
