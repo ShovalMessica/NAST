@@ -1,4 +1,4 @@
-<p align="center" style="font-size: 24px;"><strong>NAST: Noise Aware Speech Tokenization for Speech Language Models</strong></p>
+<p align="center" style="font-size: 28px;"><strong>NAST: Noise Aware Speech Tokenization for Speech Language Models</strong></p>
 Official implementation of NAST: Noise Aware Speech Tokenization for Speech Language Models. <br><br>
 <img src="diagram.png" alt="diagram" style="width:55%;height:auto;"/>
 
