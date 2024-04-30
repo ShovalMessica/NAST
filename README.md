@@ -7,4 +7,10 @@ Official implementation of NAST: Noise Aware Speech Tokenization for Speech Lang
 
 ## Tokenization Model
 You can download pretrained tokenization model from the list below. All opertaes on the 9'th layer of HuBERT base.
+| Column 1 Header | Column 2 Header |
+|-----------------|-----------------|
+| Row 1, Column 1 | Row 1, Column 2 |
+| Row 2, Column 1 | Row 2, Column 2 |
+| Row 3, Column 1 | Row 3, Column 2 |
+| Row 4, Column 1 | Row 4, Column 2 |
 
