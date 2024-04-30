@@ -21,7 +21,7 @@ You can download pretrained tokenization model from the list below.
 | HuBERT Base + 200 units | Row 3, Column 2 |
 
 ## Unit Language Model (ULM)
-You can download pretrained unit language model from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) on training new models using fairseq.
+You can download pretrained unit language model from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) on training new models using fairseq. All language models were trained & evalueted on the de-duplicate unit transcriptions of the respective NAST version.
 | ULM Model | Download Link |
 |-----------------|-----------------|
 | NAST + 50 units | Row 1, Column 2 |
