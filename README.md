@@ -7,7 +7,7 @@ Official implementation of NAST: Noise Aware Speech Tokenization for Speech Lang
 
 ## Acoustic Model
 For quantizing speech we learn NAST clustering over HuBERT Base acoustic representation model. For using the pretrained model, please download from the linke below.
-- HuBERT Base
+- [HuBERT Base](https://dl.fbaipublicfiles.com/hubert/hubert_base_ls960.pt)
 
 ## Tokenization Model
 You can download pretrained tokenization model from the list below. 
