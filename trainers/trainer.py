@@ -22,7 +22,7 @@ class HubertTrainer:
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
-        self.logger = get_logger("HubertTrainer")
+        self.logger = get_logger("Trainer")
     
     def train(self):
         num_epochs = self.training_config['training']['num_epochs']
