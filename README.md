@@ -11,8 +11,15 @@ Official implementation of NAST: Noise Aware Speech Tokenization for Speech Lang
 ## Setup Environment
 Create a conda environment, with python version 3.8 and install all the dependencies:
 ```python
-def hello_world():
-    print("Hello, world!")
+conda create -n nast python=3.8
+conda activate nast
+
+# download code
+git clone https://github.com/ShovalMessica/NAST.git
+
+# install requirements
+cd ../NAST
+conda install --file requirements.txt
 ```
 
 ## Usage
