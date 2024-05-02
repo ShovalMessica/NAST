@@ -1,32 +1,40 @@
+import torch
+from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
 from models.network import Network
 from utils.config import load_config
 from utils.checkpoint import save_checkpoint, load_checkpoint
 
-def create_model(model_name: str) -> Network:
-    """
-    Create a model instance based on the given model name.
+HUBERT_CKPT_PATH = "/path/to/hubert/checkpoint.pt"
+AUDIO_FILE_PATH = "/path/to/audio/file.wav"
 
-    Args:
-        model_name (str): Name of the model configuration.
-
-    Returns:
-        Network: Instantiated model.
-    """
+def main():
+    model_name = "100_units"
+    
+    # Create a model instance based on the given model name.
     config = load_config(model_name)
     model = Network(config)
-    return model
-
-if __name__ == "__main__":
-    model_name = "100_units"
-    model = create_model(model_name)
-    
-    # Example usage
-    input_features = torch.randn(10, 768)  # Dummy input features
-    output = model(input_features)
-    
-    # Save the model checkpoint
-    save_checkpoint(model, "checkpoints/model.ckpt")
     
     # Load the model checkpoint
-    loaded_model = create_model(model_name)
-    load_checkpoint(loaded_model, "checkpoints/model.ckpt")
+    checkpoint_path = "checkpoints/model.ckpt"
+    load_checkpoint(model, checkpoint_path)
+    
+    # Load the HuBERT model
+    hubert_model = HubertFeatureReader(HUBERT_CKPT_PATH, layer=9, max_chunk=1600000)
+    hubert_model.eval()
+    
+    # Extract HuBERT features from the audio file
+    hubert_features = features_extractor.get_feats(audio_file_path)
+    
+    # Pass the HuBERT features through the custom network
+    with torch.no_grad():
+        model.eval()
+        output = model(hubert_features)
+    
+    # Process the network output as needed
+    # ...
+    
+    # Save the updated model checkpoint
+    save_checkpoint(model, checkpoint_path)
+
+if __name__ == "__main__":
+    main()
