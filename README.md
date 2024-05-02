@@ -25,9 +25,9 @@ For quantizing speech we learn NAST clustering over HuBERT Base acoustic represe
 You can download pretrained tokenization model from the list below. 
 | NAST Model | Download Link |
 |-----------------|-----------------|
-| HuBERT Base + 50 units | [download](https://drive.google.com/file/d/1PDkV-m-kELx9fUeqmqPFWcbomHNddR1p/view?usp=drive_link) |
-| HuBERT Base + 100 units | [download](https://drive.google.com/file/d/199YLQO8InNHfUbxkYjPLDwToPxmaiMi1/view?usp=drive_link) |
-| HuBERT Base + 200 units | [download](https://drive.google.com/file/d/1KdyyYpWItsSJEoDLc-qo4YFGTCaUXmBQ/view?usp=drive_link) |
+| HuBERT Base + 50 units | <center>[download](https://drive.google.com/file/d/1PDkV-m-kELx9fUeqmqPFWcbomHNddR1p/view?usp=drive_link)</center> |
+| HuBERT Base + 100 units | <center>[download](https://drive.google.com/file/d/199YLQO8InNHfUbxkYjPLDwToPxmaiMi1/view?usp=drive_link)</center> |
+| HuBERT Base + 200 units | <center>[download](https://drive.google.com/file/d/1KdyyYpWItsSJEoDLc-qo4YFGTCaUXmBQ/view?usp=drive_link)</center> |
 
 ## Unit Language Model (ULM)
 You can download pretrained unit language models from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) to train new models using fairseq. All language models were trained and evaluated on the deduplicated unit transcriptions of the respective NAST version.
