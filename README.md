@@ -25,7 +25,7 @@ For quantizing speech we learn NAST clustering over HuBERT Base acoustic represe
 You can download pretrained tokenization model from the list below. 
 | NAST Model | Download Link |
 |-----------------|-----------------|
-| HuBERT Base + 50 units | <center>[download](https://drive.google.com/file/d/1PDkV-m-kELx9fUeqmqPFWcbomHNddR1p/view?usp=drive_link)</center> |
+| HuBERT Base + 50 units | [<center>download</center>](https://drive.google.com/file/d/1PDkV-m-kELx9fUeqmqPFWcbomHNddR1p/view?usp=drive_link)</center> |
 | HuBERT Base + 100 units | <center>[download](https://drive.google.com/file/d/199YLQO8InNHfUbxkYjPLDwToPxmaiMi1/view?usp=drive_link)</center> |
 | HuBERT Base + 200 units | <center>[download](https://drive.google.com/file/d/1KdyyYpWItsSJEoDLc-qo4YFGTCaUXmBQ/view?usp=drive_link)</center> |
 
