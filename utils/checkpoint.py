@@ -19,7 +19,7 @@ def load_checkpoint(model: torch.nn.Module, ckpt_path: str) -> None:
         ckpt_path (str): Path to the checkpoint file.
     """
     state_dict = torch.load(ckpt_path)
-    
+
     # Check if the model was saved with nn.DataParallel
     if list(state_dict.keys())[0].startswith("module."):
         # Create a new state_dict without the module. prefix
