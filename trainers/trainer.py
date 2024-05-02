@@ -61,7 +61,7 @@ class Trainer:
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
                 augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
 
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else [extract_mfcc_features(x).to(device).requires_grad_() for x in batch]
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
 
                 loss, loss_dict = self.calculate_loss(clean_features, augmented_features, target_features, epoch, ce_loss_weight, diversity_weight)
 
