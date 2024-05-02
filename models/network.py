@@ -48,13 +48,10 @@ class Network(nn.Module):
 
     def forward(self, input_features: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass of the network.
-
         Args:
             input_features (torch.Tensor): Input features tensor.
-
         Returns:
-            torch.Tensor: Output tensor.
+            torch.Tensor: reconstructed representation, one hot vector, logits before gumbel operation
         """
         if self.quantize:
             return self.quantize_forward(input_features)
