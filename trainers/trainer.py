@@ -17,11 +17,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Trainer:
     def __init__(self, model, optimizer, train_dataset, val_dataset, config_path, checkpoint_dir):
         self.model = model
-        self.feature_extractor = HubertFeatureReader(HUBERT_CKPT_PATH, layer=9, max_chunk=1600000).eval()
         self.optimizer = optimizer
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.training_config = load_config(config_path)
+        self.feature_extractor = HubertFeatureReader(self.training_config['checkpoints']['hubert'], layer=9, max_chunk=1600000).eval()
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
