@@ -12,7 +12,7 @@ class Network(nn.Module):
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
         self.quantize = config["quantize"]
-        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT"
+        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" else None
         self.use_global_residual = config["use_global_residual"]
         self.hubert_speaker = config["hubert_speaker"]
 
@@ -57,33 +57,39 @@ class Network(nn.Module):
             torch.Tensor: Output tensor.
         """
         if self.quantize:
-            predicts = self.predictor(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
-            predicts = self.projector(torch.squeeze(predicts[0], dim=0))
-            one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
-            return torch.argmax(one_hot_vector, dim=1)
-        
-        if self.use_global_residual:
-            residual_information = self.residual_encoder(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
-            residual_information = self.residual_projector(torch.squeeze(residual_information[0], dim=0))
-            residual_information = torch.sum(residual_information, 0) / residual_information.shape[0]
-            residual_information = residual_information.repeat(input_features.shape[0], 1).requires_grad_()
-            return residual_information
-          
-        residual_information = self.residual_encoder(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
-        residual_information = self.residual_projector(torch.squeeze(residual_information[0], dim=0))
-        residual_information = torch.sum(residual_information, 0) / residual_information.shape[0]
-        residual_information = residual_information.repeat(input_features.shape[0], 1).requires_grad_()
+            return self.quantize_forward(input_features)
 
-        predicts = self.predictor(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
-        predicts = self.projector(torch.squeeze(predicts[0], dim=0))
-        one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
+        residual_information = self.get_residual_information(input_features)
+        predicts, one_hot_vector = self.get_predictions(input_features)
 
         x = torch.cat([one_hot_vector, residual_information], 1)
 
         output = self.decoder(torch.unsqueeze(x, dim=0), torch.tensor([x.shape[0]]).to(x.device))
         output = self.decoder_projection(torch.squeeze(output[0], dim=0))
-        
+
         if self.hubert_speaker:
             return output
+        else:
+            return output, one_hot_vector, predicts
 
-        return output, one_hot_vector, predicts
+    def quantize_forward(self, input_features):
+        predicts = self.predictor(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
+        predicts = self.projector(torch.squeeze(predicts[0], dim=0))
+        one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
+        return torch.argmax(one_hot_vector, dim=1)
+
+    def get_predictions(self, input_features):
+        predicts = self.predictor(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
+        predicts = self.projector(torch.squeeze(predicts[0], dim=0))
+        one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
+        return predicts, one_hot_vector
+
+    def get_residual_information(self, input_features):
+        residual_information = self.residual_encoder(torch.unsqueeze(input_features, dim=0), torch.tensor([input_features.shape[0]]).to(input_features.device))
+        residual_information = self.residual_projector(torch.squeeze(residual_information[0], dim=0))
+        if self.use_global_residual:
+            residual_information = torch.sum(residual_information, 0) / residual_information.shape[0]
+        else:
+            residual_information = residual_information
+        residual_information = residual_information.repeat(input_features.shape[0], 1).requires_grad_()
+        return residual_information
