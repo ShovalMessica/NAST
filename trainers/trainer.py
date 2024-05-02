@@ -3,6 +3,7 @@ import yaml
 from typing import Dict, Any
 import torch
 from torch.utils.data import DataLoader
+from datasets.paths_dataset import PathsDataset
 from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
 from augmentations.audio_augmentations import AudioAugmentations
 from losses.reconstruction_loss import ReconstructionLoss
@@ -18,10 +19,10 @@ class Trainer:
     def __init__(self, model, optimizer, train_dataset, val_dataset, config_path, checkpoint_dir):
         self.model = model
         self.optimizer = optimizer
-        self.train_dataset = train_dataset
-        self.val_dataset = val_dataset
         self.training_config = load_config(config_path)
         self.feature_extractor = HubertFeatureReader(self.training_config['checkpoints']['hubert'], layer=9, max_chunk=1600000).eval()
+        self.train_dataset = PathsDataset(tsv_file=self.training_config['datasets']['train_tsv_path'])
+        self.val_dataset = PathsDataset(tsv_file=self.training_config['datasets']['val_tsv_path'])
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
