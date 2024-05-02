@@ -1,30 +1,37 @@
 import torch
 from torch.utils.data import DataLoader
+from models.hubert_network import HubertNetwork
 from utils.data_utils import extract_hubert_features
 from augmentations.audio_augmentations import augment
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
 from utils.training_utils import adjust_cross_entropy_weight, synchronize_diversity_weight
+from utils.logger import get_logger
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class Trainer:
-    def __init__(self, model, optimizer, train_dataset, training_config):
+class HubertTrainer:
+    def __init__(self, model, optimizer, train_dataset, val_dataset, training_config):
         self.model = model
         self.optimizer = optimizer
         self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
         self.training_config = training_config
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
+        self.logger = get_logger("HubertTrainer")
     
     def train(self):
         num_epochs = self.training_config['training']['num_epochs']
         batch_size = self.training_config['training']['batch_size']
         checkpoint_interval = self.training_config['training']['checkpoint_interval']
+        validation_interval = self.training_config['training']['validation_interval']
+        log_interval = self.training_config['training']['log_interval']
         
-        data_loader = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
+        train_loader = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(self.val_dataset, batch_size=batch_size)
         
         ce_loss_weight = self.training_config['phase2']['weights']['cross_entropy']
         ce_loss_stabilized = False
@@ -36,7 +43,7 @@ class Trainer:
         for epoch in range(num_epochs):
             self.model.train()
             
-            for batch_idx, batch in enumerate(data_loader):
+            for batch_idx, batch in enumerate(train_loader):
                 self.optimizer.zero_grad()
                 
                 clean_audio = [extract_hubert_features(x) for x in batch]
@@ -91,10 +98,36 @@ class Trainer:
                 loss.backward()
                 self.optimizer.step()
                 
-                # Print training progress
-                if batch_idx % 100 == 0:
-                    print(f"Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(data_loader)}], Loss: {loss.item():.4f}")
+                # Log training progress
+                if (batch_idx + 1) % log_interval == 0:
+                    self.logger.info(f"Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
+            
+            # Validate the model
+            if (epoch + 1) % validation_interval == 0:
+                self.validate(val_loader)
             
             # Save model checkpoint
             if (epoch + 1) % checkpoint_interval == 0:
-                torch.save(self.model.state_dict(), f"checkpoints/model_epoch_{epoch+1}.pt")
+                self.save_checkpoint(epoch + 1)
+    
+    def validate(self, val_loader):
+        self.model.eval()
+        val_loss = 0.0
+        
+        with torch.no_grad():
+            for batch in val_loader:
+                clean_audio = [extract_hubert_features(x) for x in batch]
+                clean_features = [extract_hubert_features(x) for x in clean_audio]
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else [extract_mfcc_features(x).to(device).requires_grad_() for x in batch]
+                
+                for x, rec_target in zip(clean_features, target_features):
+                    rec_x, _, _ = self.model(x)
+                    val_loss += self.reconstruction_loss(rec_x, rec_target)
+        
+        val_loss /= len(val_loader.dataset)
+        self.logger.info(f"Validation Loss: {val_loss:.4f}")
+    
+    def save_checkpoint(self, epoch):
+        checkpoint_path = f"checkpoints/model_epoch_{epoch}.pt"
+        torch.save(self.model.state_dict(), checkpoint_path)
+        self.logger.info(f"Checkpoint saved: {checkpoint_path}")
