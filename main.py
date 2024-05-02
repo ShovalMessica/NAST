@@ -17,7 +17,7 @@ def create_model(model_name: str) -> Network:
     return model
 
 if __name__ == "__main__":
-    model_name = "network_100_big_predictor"
+    model_name = "100_units"
     model = create_model(model_name)
     
     # Example usage
