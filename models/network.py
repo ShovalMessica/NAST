@@ -12,7 +12,7 @@ class Network(nn.Module):
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
         self.quantize = config["quantize"]
-        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" else self.in_channels
+        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" 
         self.use_global_residual = config["use_global_residual"]
         self.hubert_speaker = config["hubert_speaker"]
 
@@ -69,26 +69,23 @@ class Network(nn.Module):
 
     def forward(self, input_features: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass of the network.
-
         Args:
             input_features (torch.Tensor): Input features tensor.
 
         Returns:
-            torch.Tensor: Output tensor.
+            - torch.Tensor: The reconstructed representation of the input.
+            - torch.Tensor: The unit selection as a one-hot vector.
+            - torch.Tensor: The logits before sampling.
         """
+        predicts = self._get_predicts(input_features)
+        one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
+        residual_information = self._get_residual_information(input_features)
+
         if self.quantize:
-            predicts = self._get_predicts(input_features)
-            one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
             return torch.argmax(one_hot_vector, dim=1)
         
         if self.use_global_residual:
-            residual_information = self._get_residual_information(input_features)
             return residual_information
-          
-        residual_information = self._get_residual_information(input_features)
-        predicts = self._get_predicts(input_features)
-        one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
 
         x = torch.cat([one_hot_vector, residual_information], 1)
 
