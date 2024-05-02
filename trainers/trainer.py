@@ -3,9 +3,8 @@ import yaml
 from typing import Dict, Any
 import torch
 from torch.utils.data import DataLoader
-from utils.config import load_config
 from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
-from augmentations.audio_augmentations import augment
+from augmentations.audio_augmentations import AudioAugmentations
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
@@ -22,7 +21,7 @@ class Trainer:
         self.optimizer = optimizer
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.training_config = self.load_config(config_path)
+        self.training_config = load_config(config_path)
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
@@ -30,6 +29,7 @@ class Trainer:
         self.checkpoint_dir = checkpoint_dir
         self.best_val_loss = float('inf')
         self.checkpoint_interval = self.training_config['training']['checkpoint_interval']
+        self.audio_augmentations = AudioAugmentations(self.training_config, phase='phase1')
 
     def train(self):
         num_epochs = self.training_config['training']['num_epochs']
@@ -55,7 +55,7 @@ class Trainer:
 
                 # Read audio files
                 clean_audio = [self.feature_extractor.read_audio(x) for x in batch]
-                augmented_audio = [augment(x) for x in clean_audio]
+                augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
 
                 # Extract HuBERT features from the audio file
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
@@ -81,6 +81,10 @@ class Trainer:
                 # Save checkpoint
                 if (batch_idx + 1) % self.checkpoint_interval == 0:
                     self.save_checkpoint(epoch, batch_idx, is_best=False)
+
+            # Update the phase for the next epoch
+            if epoch == self.training_config['phase1']['epochs'] - 1:
+                self.audio_augmentations.phase = 'phase2'
 
             # Validate the model
             if (epoch + 1) % validation_interval == 0:
@@ -150,23 +154,27 @@ class Trainer:
         with torch.no_grad():
             for batch in val_loader:
                 clean_audio = [self.feature_extractor.read_audio(x) for x in batch]
+                augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else [extract_mfcc_features(x).to(device).requires_grad_() for x in batch]
+                augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT" 
 
-                for x, rec_target in zip(clean_features, target_features):
+                for x, augmented_x, rec_target in zip(clean_features, augmented_features, target_features):
                     rec_x, one_hot_x, predicts_x = self.model(x)
+                    rec_augmented_x, one_hot_augmented_x, predicts_augmented_x = self.model(augmented_x)
 
                     if self.training_config['phase1']['losses']['reconstruction']:
                         val_loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)
                     if self.training_config['phase1']['losses']['diversity']:
                         val_loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x, self.model.num_units)
                     if self.training_config['phase2']['losses']['cross_entropy']:
-                        val_loss_dict['ce_loss'] += self.cross_entropy_loss(predicts_x, one_hot_x)
+                        val_loss_dict['ce_loss'] += self.cross_entropy_loss(predicts_augmented_x, one_hot__x)
 
         batch_size = len(val_loader.dataset)
         val_loss_dict['reconstruction_loss'] /= batch_size
         val_loss_dict['diversity_loss'] /= batch_size
-        val_loss_dict['ce_loss'] /= batch_size
+        val_loss_dict['ce_loss_clean'] /= batch_size
+        val_loss_dict['ce_loss_augmented'] /= batch_size
 
         if epoch < self.training_config['phase1']['epochs']:
             # Phase 1: Reconstruction and Diversity Loss
@@ -181,7 +189,7 @@ class Trainer:
             if self.training_config['phase2']['losses']['diversity']:
                 val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['diversity'] * val_loss_dict['diversity_loss']
             if self.training_config['phase2']['losses']['cross_entropy']:
-                val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['cross_entropy'] * val_loss_dict['ce_loss']
+                val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['cross_entropy'] * (val_loss_dict['ce_loss_clean'] + val_loss_dict['ce_loss_augmented']) / 2
 
         self.logger.info(f"Epoch [{epoch+1}] Validation Losses:")
         for loss_name, loss_value in val_loss_dict.items():
