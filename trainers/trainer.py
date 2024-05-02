@@ -9,7 +9,7 @@ from utils.training_utils import adjust_cross_entropy_weight, synchronize_divers
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class HubertTrainer:
+class Trainer:
     def __init__(self, model, optimizer, train_dataset, training_config):
         self.model = model
         self.optimizer = optimizer
