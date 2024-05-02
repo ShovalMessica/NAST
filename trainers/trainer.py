@@ -45,7 +45,7 @@ class Trainer:
                 clean_features = [extract_hubert_features(x) for x in clean_audio]
                 augmented_features = [extract_hubert_features(x).to(device) for x in augmented_audio]
                 
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else [extract_mfcc_features(x).to(device).requires_grad_() for x in batch]
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
                 
                 loss = 0.0
                 reconstruction_loss_value = 0.0
