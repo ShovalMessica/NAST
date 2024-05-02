@@ -1,0 +1,28 @@
+phase1:
+  epochs: 10
+  losses:
+    reconstruction: true
+    diversity: true
+    cross_entropy: false
+  weights:
+    reconstruction: 2.0
+    diversity: 1.0
+
+phase2:
+  losses:
+    reconstruction: true
+    diversity: true
+    cross_entropy: true
+  weights:
+    reconstruction: 2.0
+    diversity: 1.0
+    cross_entropy: 0.005
+
+cross_entropy:
+  stabilization_threshold: 1e-4
+  weight_increment_factor: 1.1
+  max_weight: 10.0
+
+diversity:
+  synchronization_factor: 1.1
+  max_weight: 40.0
