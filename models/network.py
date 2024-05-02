@@ -87,20 +87,3 @@ class Network(nn.Module):
             return output
 
         return output, one_hot_vector, predicts
-
-    def load_network_from_checkpoint(self, ckpt_path: str) -> None:
-        """
-        Load the network's weights from a given checkpoint.
-
-        Args:
-            ckpt_path (str): Path to the checkpoint file.
-        """
-        state_dict = torch.load(ckpt_path)
-    
-        # Check if the model was saved with nn.DataParallel
-        if list(state_dict.keys())[0].startswith("module."):
-            # Create a new state_dict without the module. prefix
-            new_state_dict = {k[7:]: v for k, v in state_dict.items()}
-            self.load_state_dict(new_state_dict)
-        else:
-            self.load_state_dict(state_dict)
