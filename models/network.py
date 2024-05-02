@@ -12,7 +12,7 @@ class Network(nn.Module):
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
         self.quantize = config["quantize"]
-        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" else 39
+        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" else config["out_channels"]
         self.use_global_residual = config["use_global_residual"]
         self.hubert_speaker = config["hubert_speaker"]
 
