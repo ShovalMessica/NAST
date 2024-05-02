@@ -1,6 +1,6 @@
 from models.network import Network
 from utils.config import load_config
-from utils.checkpoint import save_checkpoint
+from utils.checkpoint import save_checkpoint, load_checkpoint
 
 def create_model(model_name: str) -> Network:
     """
@@ -17,7 +17,7 @@ def create_model(model_name: str) -> Network:
     return model
 
 if __name__ == "__main__":
-    model_name = "network_100"
+    model_name = "network_100_big_predictor"
     model = create_model(model_name)
     
     # Example usage
@@ -26,3 +26,7 @@ if __name__ == "__main__":
     
     # Save the model checkpoint
     save_checkpoint(model, "checkpoints/model.ckpt")
+    
+    # Load the model checkpoint
+    loaded_model = create_model(model_name)
+    load_checkpoint(loaded_model, "checkpoints/model.ckpt")
