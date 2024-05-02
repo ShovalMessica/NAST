@@ -1,6 +1,9 @@
 import os
+import yaml
+from typing import Dict, Any
 import torch
 from torch.utils.data import DataLoader
+from utils.config import load_config
 from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
 from augmentations.audio_augmentations import augment
 from losses.reconstruction_loss import ReconstructionLoss
@@ -8,28 +11,29 @@ from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
 from utils.training_utils import adjust_cross_entropy_weight, synchronize_diversity_weight
 from utils.logger import get_logger
+from utils.checkpoint_utils import save_checkpoint, load_checkpoint
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class HubertTrainer:
-    def __init__(self, model, optimizer, train_dataset, val_dataset, training_config, checkpoint_dir):
+class Trainer:
+    def __init__(self, model, optimizer, train_dataset, val_dataset, config_path, checkpoint_dir):
         self.model = model
         self.feature_extractor = HubertFeatureReader(HUBERT_CKPT_PATH, layer=9, max_chunk=1600000).eval()
         self.optimizer = optimizer
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.training_config = training_config
+        self.training_config = self.load_config(config_path)
         self.reconstruction_loss = ReconstructionLoss()
         self.diversity_loss = DiversityLoss()
         self.cross_entropy_loss = CrossEntropyLoss()
         self.logger = get_logger("Trainer")
         self.checkpoint_dir = checkpoint_dir
         self.best_val_loss = float('inf')
+        self.checkpoint_interval = self.training_config['training']['checkpoint_interval']
 
     def train(self):
         num_epochs = self.training_config['training']['num_epochs']
         batch_size = self.training_config['training']['batch_size']
-        checkpoint_interval = self.training_config['training']['checkpoint_interval']
         validation_interval = self.training_config['training']['validation_interval']
         log_interval = self.training_config['training']['log_interval']
 
@@ -74,6 +78,10 @@ class HubertTrainer:
                 # Synchronize Diversity Loss weight
                 diversity_weight, diversity_prev = synchronize_diversity_weight(loss_dict['diversity_loss'], diversity_prev, diversity_weight, self.training_config)
 
+                # Save checkpoint
+                if (batch_idx + 1) % self.checkpoint_interval == 0:
+                    self.save_checkpoint(epoch, batch_idx, is_best=False)
+
             # Validate the model
             if (epoch + 1) % validation_interval == 0:
                 val_loss = self.validate(val_loader, epoch)
@@ -81,11 +89,7 @@ class HubertTrainer:
                 # Save the best model checkpoint
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
-                    self.save_checkpoint(epoch + 1, is_best=True)
-
-            # Save model checkpoint
-            if (epoch + 1) % checkpoint_interval == 0:
-                self.save_checkpoint(epoch + 1, is_best=False)
+                    self.save_checkpoint(epoch, batch_idx, is_best=True)
 
     def calculate_loss(self, clean_features, augmented_features, target_features, epoch, ce_loss_weight, diversity_weight):
         loss_dict = {
@@ -147,7 +151,7 @@ class HubertTrainer:
             for batch in val_loader:
                 clean_audio = [self.feature_extractor.read_audio(x) for x in batch]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else [extract_mfcc_features(x).to(device).requires_grad_() for x in batch]
 
                 for x, rec_target in zip(clean_features, target_features):
                     rec_x, one_hot_x, predicts_x = self.model(x)
@@ -188,13 +192,13 @@ class HubertTrainer:
         self.model.train()
         return val_loss_dict['total_loss']
 
-    def save_checkpoint(self, epoch, is_best=False):
-        checkpoint_path = os.path.join(self.checkpoint_dir, f"model_epoch_{epoch}.pt")
-        torch.save(self.model.state_dict(), checkpoint_path)
+    def save_checkpoint(self, epoch, batch_idx, is_best=False):
+        checkpoint_path = os.path.join(self.checkpoint_dir, f"model_epoch_{epoch}_batch_{batch_idx}.pt")
+        save_checkpoint(self.model, checkpoint_path)
 
         if is_best:
             best_checkpoint_path = os.path.join(self.checkpoint_dir, "best_model.pt")
-            torch.save(self.model.state_dict(), best_checkpoint_path)
+            save_checkpoint(self.model, best_checkpoint_path)
             self.logger.info(f"Best model checkpoint saved: {best_checkpoint_path}")
         else:
             self.logger.info(f"Checkpoint saved: {checkpoint_path}")
