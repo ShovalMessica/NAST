@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from models.hubert_network import HubertNetwork
-from utils.data_utils import extract_hubert_features
+from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
 from augmentations.audio_augmentations import augment
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
@@ -14,6 +13,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class HubertTrainer:
     def __init__(self, model, optimizer, train_dataset, val_dataset, training_config):
         self.model = model
+        # Load the HuBERT model
+        self.feture_extractor = HubertFeatureReader(HUBERT_CKPT_PATH, layer=9, max_chunk=1600000).eval()
         self.optimizer = optimizer
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
@@ -46,11 +47,13 @@ class HubertTrainer:
             for batch_idx, batch in enumerate(train_loader):
                 self.optimizer.zero_grad()
                 
-                clean_audio = [extract_hubert_features(x) for x in batch]
+                # Read audio files
+                clean_audio = [self.feature_extractor.read_audio(x) for x in batch]
                 augmented_audio = [augment(x) for x in clean_audio]
-                
-                clean_features = [extract_hubert_features(x) for x in clean_audio]
-                augmented_features = [extract_hubert_features(x).to(device) for x in augmented_audio]
+
+                # Extract HuBERT features from the audio file
+                clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
+                augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
                 
                 target_features = clean_features if self.model.reconstruction_type == "HuBERT"
                 
