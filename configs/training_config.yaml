@@ -47,3 +47,10 @@ cross_entropy:
 diversity:
   synchronization_factor: 1.1
   max_weight: 10.0
+
+datasets:
+  train_path: "/path/to/train/dataset"
+  val_path: "/path/to/val/dataset"
+
+checkpoints:
+  hubert: "/path/to/hubert/checkpoints"
