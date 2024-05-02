@@ -1,0 +1,68 @@
+100_units:
+  in_channels: 768
+  num_units: 100
+  reconstruction_type: HuBERT
+  quantize: false
+  _global: false
+  hubert_speaker: false
+  predictor:
+    num_heads: 8
+    ffn_dim: 2048
+    num_layers: 12
+    depthwise_conv_kernel_size: 17
+  residual_encoder:
+    num_heads: 4
+    ffn_dim: 1024
+    num_layers: 6
+    depthwise_conv_kernel_size: 3
+  decoder:
+    num_heads: 4
+    ffn_dim: 2048
+    num_layers: 13
+    depthwise_conv_kernel_size: 3
+
+200_units:
+  in_channels: 768
+  num_units: 200
+  reconstruction_type: HuBERT
+  quantize: false
+  _global: false
+  hubert_speaker: false
+  predictor:
+    num_heads: 8
+    ffn_dim: 2048
+    num_layers: 8
+    depthwise_conv_kernel_size: 17
+  residual_encoder:
+    num_heads: 4
+    ffn_dim: 1024
+    num_layers: 6
+    depthwise_conv_kernel_size: 3
+  decoder:
+    num_heads: 6
+    ffn_dim: 2048
+    num_layers: 10
+    depthwise_conv_kernel_size: 3
+
+50_units:
+  in_channels: 768
+  num_units: 50
+  reconstruction_type: HuBERT
+  quantize: false
+  _global: false
+  hubert_speaker: false
+  predictor:
+    num_heads: 8
+    ffn_dim: 2048
+    num_layers: 12
+    depthwise_conv_kernel_size: 17
+  residual_encoder:
+    num_heads: 4
+    ffn_dim: 1024
+    num_layers: 6
+    depthwise_conv_kernel_size: 3
+  decoder:
+    num_heads: 6
+    ffn_dim: 2048
+    num_layers: 16
+    depthwise_conv_kernel_size: 3
