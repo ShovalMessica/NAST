@@ -29,12 +29,12 @@ class Trainer:
         self.checkpoint_dir = checkpoint_dir
         self.best_val_loss = float('inf')
         self.checkpoint_interval = self.training_config['training']['checkpoint_interval']
+        self.validation_interval = self.training_config['training']['validation_interval']
         self.audio_augmentations = AudioAugmentations(self.training_config, phase='phase1')
 
     def train(self):
         num_epochs = self.training_config['training']['num_epochs']
         batch_size = self.training_config['training']['batch_size']
-        validation_interval = self.training_config['training']['validation_interval']
         log_interval = self.training_config['training']['log_interval']
 
         train_loader = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
@@ -82,18 +82,18 @@ class Trainer:
                 if (batch_idx + 1) % self.checkpoint_interval == 0:
                     self.save_checkpoint(epoch, batch_idx, is_best=False)
 
+                # Validate the model
+                if (batch_idx + 1) % self.validation_interval == 0:
+                    val_loss = self.validate(val_loader, epoch, batch_idx)
+
+                    # Save the best model checkpoint
+                    if val_loss < self.best_val_loss:
+                        self.best_val_loss = val_loss
+                        self.save_checkpoint(epoch, batch_idx, is_best=True)
+
             # Update the phase for the next epoch
             if epoch == self.training_config['phase1']['epochs'] - 1:
                 self.audio_augmentations.phase = 'phase2'
-
-            # Validate the model
-            if (epoch + 1) % validation_interval == 0:
-                val_loss = self.validate(val_loader, epoch)
-
-                # Save the best model checkpoint
-                if val_loss < self.best_val_loss:
-                    self.best_val_loss = val_loss
-                    self.save_checkpoint(epoch, batch_idx, is_best=True)
 
     def calculate_loss(self, clean_features, augmented_features, target_features, epoch, ce_loss_weight, diversity_weight):
         loss_dict = {
@@ -137,19 +137,69 @@ class Trainer:
         return loss_dict['total_loss'], loss_dict
 
     def log_losses(self, loss_dict, epoch, batch_idx, num_batches):
-        for loss_name, loss_value in loss_dict.items():
-            if loss_name != 'total_loss':
-                self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], {loss_name.capitalize()}: {loss_value:.4f}")
-        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], Total Loss: {loss_dict['total_loss']:.4f}")
+        reconstruction_loss = loss_dict['reconstruction_loss']
+        diversity_loss = loss_dict['diversity_loss']
+        ce_loss = loss_dict['ce_loss']
+        total_loss = loss_dict['total_loss']
 
-    def validate(self, val_loader, epoch):
-        self.model.eval()
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], Reconstruction Loss: {reconstruction_loss:.4f}")
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], Diversity Loss: {diversity_loss:.4f}")
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], Cross-Entropy Loss: {ce_loss:.4f}")
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}/{num_batches}], Total Loss: {total_loss:.4f}")
+
+    def calculate_validation_losses(self, clean_features, augmented_features, target_features, epoch):
         val_loss_dict = {
             'reconstruction_loss': 0.0,
             'diversity_loss': 0.0,
-            'ce_loss': 0.0,
+            'ce_loss_clean': 0.0,
+            'ce_loss_augmented': 0.0,
             'total_loss': 0.0
         }
+
+        for x, augmented_x, rec_target in zip(clean_features, augmented_features, target_features):
+            rec_x, one_hot_x, predicts_x = self.model(x)
+            rec_augmented_x, one_hot_augmented_x, predicts_augmented_x = self.model(augmented_x)
+
+            if self.training_config['phase1']['losses']['reconstruction']:
+                val_loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)
+            if self.training_config['phase1']['losses']['diversity']:
+                val_loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x, self.model.num_units)
+            if self.training_config['phase2']['losses']['cross_entropy']:
+                val_loss_dict['ce_loss_clean'] += self.cross_entropy_loss(predicts_x, one_hot_x)
+                val_loss_dict['ce_loss_augmented'] += self.cross_entropy_loss(predicts_augmented_x, one_hot_augmented_x)
+
+        batch_size = len(clean_features)
+        val_loss_dict['reconstruction_loss'] /= batch_size
+        val_loss_dict['diversity_loss'] /= batch_size
+        val_loss_dict['ce_loss_clean'] /= batch_size
+        val_loss_dict['ce_loss_augmented'] /= batch_size
+
+        return val_loss_dict
+
+    def calculate_total_validation_loss(self, val_loss_dict, epoch):
+        total_loss = 0.0
+
+        if epoch < self.training_config['phase1']['epochs']:
+            # Phase 1: Reconstruction and Diversity Loss
+            if self.training_config['phase1']['losses']['reconstruction']:
+                total_loss += self.training_config['phase1']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
+            if self.training_config['phase1']['losses']['diversity']:
+                total_loss += self.training_config['phase1']['weights']['diversity'] * val_loss_dict['diversity_loss']
+        else:
+            # Phase 2: All Losses
+            if self.training_config['phase2']['losses']['reconstruction']:
+                total_loss += self.training_config['phase2']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
+            if self.training_config['phase2']['losses']['diversity']:
+                total_loss += self.training_config['phase2']['weights']['diversity'] * val_loss_dict['diversity_loss']
+            if self.training_config['phase2']['losses']['cross_entropy']:
+                total_loss += self.training_config['phase2']['weights']['cross_entropy'] * (val_loss_dict['ce_loss_clean'] + val_loss_dict['ce_loss_augmented']) / 2
+
+        return total_loss
+
+    def validate(self, val_loader, epoch, batch_idx):
+        self.model.eval()
+
+        val_loss_dicts = []
 
         with torch.no_grad():
             for batch in val_loader:
@@ -157,48 +207,30 @@ class Trainer:
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
                 augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" 
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
 
-                for x, augmented_x, rec_target in zip(clean_features, augmented_features, target_features):
-                    rec_x, one_hot_x, predicts_x = self.model(x)
-                    rec_augmented_x, one_hot_augmented_x, predicts_augmented_x = self.model(augmented_x)
+                val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features, epoch)
+                val_loss_dicts.append(val_loss_dict)
 
-                    if self.training_config['phase1']['losses']['reconstruction']:
-                        val_loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)
-                    if self.training_config['phase1']['losses']['diversity']:
-                        val_loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x, self.model.num_units)
-                    if self.training_config['phase2']['losses']['cross_entropy']:
-                        val_loss_dict['ce_loss'] += self.cross_entropy_loss(predicts_augmented_x, one_hot__x)
+        avg_val_loss_dict = self.average_loss_dicts(val_loss_dicts)
+        total_val_loss = self.calculate_total_validation_loss(avg_val_loss_dict, epoch)
 
-        batch_size = len(val_loader.dataset)
-        val_loss_dict['reconstruction_loss'] /= batch_size
-        val_loss_dict['diversity_loss'] /= batch_size
-        val_loss_dict['ce_loss_clean'] /= batch_size
-        val_loss_dict['ce_loss_augmented'] /= batch_size
-
-        if epoch < self.training_config['phase1']['epochs']:
-            # Phase 1: Reconstruction and Diversity Loss
-            if self.training_config['phase1']['losses']['reconstruction']:
-                val_loss_dict['total_loss'] += self.training_config['phase1']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
-            if self.training_config['phase1']['losses']['diversity']:
-                val_loss_dict['total_loss'] += self.training_config['phase1']['weights']['diversity'] * val_loss_dict['diversity_loss']
-        else:
-            # Phase 2: All Losses
-            if self.training_config['phase2']['losses']['reconstruction']:
-                val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
-            if self.training_config['phase2']['losses']['diversity']:
-                val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['diversity'] * val_loss_dict['diversity_loss']
-            if self.training_config['phase2']['losses']['cross_entropy']:
-                val_loss_dict['total_loss'] += self.training_config['phase2']['weights']['cross_entropy'] * (val_loss_dict['ce_loss_clean'] + val_loss_dict['ce_loss_augmented']) / 2
-
-        self.logger.info(f"Epoch [{epoch+1}] Validation Losses:")
-        for loss_name, loss_value in val_loss_dict.items():
-            if loss_name != 'total_loss':
-                self.logger.info(f"{loss_name.capitalize()}: {loss_value:.4f}")
-        self.logger.info(f"Total Validation Loss: {val_loss_dict['total_loss']:.4f}")
+        self.log_validation_losses(avg_val_loss_dict, epoch, batch_idx)
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}], Total Validation Loss: {total_val_loss:.4f}")
 
         self.model.train()
-        return val_loss_dict['total_loss']
+        return total_val_loss
+
+    def average_loss_dicts(self, loss_dicts):
+        avg_loss_dict = {key: sum(d[key] for d in loss_dicts) / len(loss_dicts) for key in loss_dicts[0]}
+        return avg_loss_dict
+
+    def log_validation_losses(self, val_loss_dict, epoch, batch_idx):
+        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}], Validation Losses:")
+        self.logger.info(f"Reconstruction Loss: {val_loss_dict['reconstruction_loss']:.4f}")
+        self.logger.info(f"Diversity Loss: {val_loss_dict['diversity_loss']:.4f}")
+        self.logger.info(f"Cross-Entropy Loss (Clean): {val_loss_dict['ce_loss_clean']:.4f}")
+        self.logger.info(f"Cross-Entropy Loss (Augmented): {val_loss_dict['ce_loss_augmented']:.4f}")
 
     def save_checkpoint(self, epoch, batch_idx, is_best=False):
         checkpoint_path = os.path.join(self.checkpoint_dir, f"model_epoch_{epoch}_batch_{batch_idx}.pt")
