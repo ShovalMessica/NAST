@@ -48,9 +48,8 @@
   in_channels: 768
   num_units: 200
   reconstruction_type: HuBERT
-  quantize: false
-  _global: false
-  hubert_speaker: false
+  discrete_local: false
+  continous_global: false
   predictor:
     num_heads: 8
     ffn_dim: 2048
