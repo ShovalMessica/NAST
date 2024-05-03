@@ -11,9 +11,9 @@ class Network(nn.Module):
         self.in_channels = config["in_channels"]
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
-        self.quantize = config["quantize"]
+        self.discrete_local = config["discrete_local"]
         self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" 
-        self.use_global_residual = config["use_global_residual"]
+        self.continous_global = config["continous_global"]
 
         self.predictor = self._build_conformer(
             input_dim=self.in_channels,
@@ -80,10 +80,10 @@ class Network(nn.Module):
         one_hot_vector = F.gumbel_softmax(logits=predicts, tau=0.8, hard=False, dim=1)
         residual_information = self._get_residual_information(input_features)
 
-        if self.quantize:
+        if self.discrete_local:
             return torch.argmax(one_hot_vector, dim=1)
         
-        if self.use_global_residual:
+        if self.continous_global:
             return residual_information
 
         x = torch.cat([one_hot_vector, residual_information], 1)
