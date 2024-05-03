@@ -75,7 +75,7 @@ class Validator:
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
                 augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else augmented_features
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
 
                 val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features, epoch)
                 val_loss_dicts.append(val_loss_dict)
@@ -97,5 +97,4 @@ class Validator:
         self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}], Validation Losses:")
         self.logger.info(f"Reconstruction Loss: {val_loss_dict['reconstruction_loss']:.4f}")
         self.logger.info(f"Diversity Loss: {val_loss_dict['diversity_loss']:.4f}")
-        self.logger.info(f"Cross-Entropy Loss (Clean): {val_loss_dict['ce_loss_clean']:.4f}")
-        self.logger.info(f"Cross-Entropy Loss (Augmented): {val_loss_dict['ce_loss_augmented']:.4f}")
+        self.logger.info(f"Cross-Entropy Loss: {val_loss_dict['ce_loss']:.4f}")
