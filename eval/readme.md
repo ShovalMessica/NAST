@@ -17,8 +17,6 @@ Execute the UED calculator with the command below. Replace placeholders with act
 python eval/ued_calculator.py \
   --dataset_tsv_path /path/to/dataset.tsv \
   --config_path /path/to/training_config.yaml \
-  --checkpoint_path /path/to/checkpoint.pt \
-  --hubert_ckpt_path /path/to/hubert_base_ls960.pt \
   --wandb_project your_project_name \
   --wandb_entity your_entity_name
 ```
@@ -26,8 +24,6 @@ python eval/ued_calculator.py \
 #### Parameters:
 - `--dataset_tsv_path`: Path to the TSV file containing the dataset.
 - `--config_path`: Path to the YAML configuration file.
-- `--checkpoint_path`: (Optional) Path to the checkpoint file with pre-trained model weights.
-- `--hubert_ckpt_path`: Path to the HuBERT checkpoint file.
 - `--wandb_project`: (Optional) Weights & Biases project name for logging the UED scores.
 - `--wandb_entity`: (Optional) Weights & Biases entity name.
 
