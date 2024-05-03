@@ -25,7 +25,7 @@ python eval/ued_calculator.py \
 #### Parameters:
 - `--dataset_tsv_path`: Path to the TSV file containing the dataset.
 - `--config_path`: Path to the YAML configuration file.
-- `--use_wandb`: Enable logging with Weights and Biases.
+- `--use_wandb`: (Optional) Enable logging with Weights and Biases.
 - `--wandb_project`: (Optional) Weights & Biases project name for logging the UED scores.
 - `--wandb_entity`: (Optional) Weights & Biases entity name.
 
