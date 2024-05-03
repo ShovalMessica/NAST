@@ -12,12 +12,13 @@ import argparse
 import yaml
 
 class UEDCalculator:
-    def __init__(self, network, feature_extractor, device, wandb_project=None, wandb_entity=None):
+    def __init__(self, network, feature_extractor, device, use_wandb=False, wandb_project=None, wandb_entity=None):
         self.network = network
         self.feature_extractor = feature_extractor
         self.device = device
         self.augmentations = [trans_pitch_shift, trans_reverberation, trans_noise_5_30, trans_time_stretch]
         self.augmentations_str = ["Pitch Shift", "Reverberation", "Noise 5-30", "Time Stretch"]
+        self.use_wandb = use_wandb
         self.wandb_project = wandb_project
         self.wandb_entity = wandb_entity
 
@@ -84,10 +85,12 @@ class UEDCalculator:
         ued = (total_ued / total_units) * 100
         print(f"{augmentation_str} UED: {ued:.2f}%")
 
-        if self.wandb_project is not None and self.wandb_entity is not None:
-            wandb.init(project=self.wandb_project, entity=self.wandb_entity)
+        if self.use_wandb:
+            if not wandb.run:
+                wandb.init(project=self.wandb_project, entity=self.wandb_entity, resume="allow")
             wandb.log({f"{augmentation_str} UED": ued})
-            wandb.finish()
+            if ckpt_path:
+                wandb.save(ckpt_path)
 
         return ued
 
@@ -117,8 +120,6 @@ class UEDCalculator:
 def main():
     parser = argparse.ArgumentParser(description="Calculate UED for different augmentations.")
     parser.add_argument("--dataset_tsv_path", type=str, required=True, help="Path to the TSV file containing the dataset for UED calculation.")
-    parser.add_argument("--checkpoint_path", type=str, default=None, help="Path to the checkpoint file to load the model weights from.")
-    parser.add_argument("--hubert_ckpt_path", type=str, default="/path/to/hubert_base_ls960.pt", help="Path to the HuBERT checkpoint file.")
     parser.add_argument("--config_path", type=str, required=True, help="Path to the configuration YAML file.")
     parser.add_argument("--wandb_project", type=str, default=None, help="Weights and Biases project name.")
     parser.add_argument("--wandb_entity", type=str, default=None, help="Weights and Biases entity name.")
@@ -129,7 +130,7 @@ def main():
         config = yaml.safe_load(f)
 
     # Load the pre-trained model
-    feature_extractor = HubertFeatureReader(args.hubert_ckpt_path, layer=9, max_chunk=1600000)
+    feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9, max_chunk=1600000)
     network = Network(config=config)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     network.to(device)
@@ -141,7 +142,7 @@ def main():
     ued_calculator = UEDCalculator(network, feature_extractor, device, args.wandb_project, args.wandb_entity)
 
     # Calculate UED for all augmentations
-    ued_calculator.calc_ued_all_augmentations(dataset, args.checkpoint_path)
+    ued_calculator.calc_ued_all_augmentations(dataset, config['checkpoints']['tokenizer'])
 
 if __name__ == "__main__":
     main()
