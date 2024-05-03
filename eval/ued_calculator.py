@@ -121,6 +121,7 @@ def main():
     parser = argparse.ArgumentParser(description="Calculate UED for different augmentations.")
     parser.add_argument("--dataset_tsv_path", type=str, required=True, help="Path to the TSV file containing the dataset for UED calculation.")
     parser.add_argument("--config_path", type=str, required=True, help="Path to the configuration YAML file.")
+    parser.add_argument("--use_wandb", action='store_true', help="Enable logging with Weights and Biases.")
     parser.add_argument("--wandb_project", type=str, default=None, help="Weights and Biases project name.")
     parser.add_argument("--wandb_entity", type=str, default=None, help="Weights and Biases entity name.")
     args = parser.parse_args()
@@ -139,7 +140,7 @@ def main():
     dataset = PathsDataset(tsv_file=args.dataset_tsv_path)
 
     # Create the UEDCalculator
-    ued_calculator = UEDCalculator(network, feature_extractor, device, args.wandb_project, args.wandb_entity)
+    ued_calculator = UEDCalculator(network, feature_extractor, device, args.use_wandb, args.wandb_project, args.wandb_entity)
 
     # Calculate UED for all augmentations
     ued_calculator.calc_ued_all_augmentations(dataset, config['checkpoints']['tokenizer'])
