@@ -1,6 +1,5 @@
 AMFM_decompy==1.0.11
 fairseq==0.12.2
-fairseq.egg==info
 jiwer==3.0.3
 joblib==1.2.0
 librosa==0.10.0
@@ -13,3 +12,4 @@ torch==1.13.1
 torchaudio==0.13.1
 tqdm==4.65.0
 tweepy==4.14.0
+yaml
