@@ -14,7 +14,6 @@ class Network(nn.Module):
         self.quantize = config["quantize"]
         self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" 
         self.use_global_residual = config["use_global_residual"]
-        self.hubert_speaker = config["hubert_speaker"]
 
         self.predictor = self._build_conformer(
             input_dim=self.in_channels,
@@ -91,8 +90,5 @@ class Network(nn.Module):
 
         output = self.decoder(torch.unsqueeze(x, dim=0), torch.tensor([x.shape[0]]).to(x.device))
         output = self.decoder_projection(torch.squeeze(output[0], dim=0))
-        
-        if self.hubert_speaker:
-            return output
 
         return output, one_hot_vector, predicts
