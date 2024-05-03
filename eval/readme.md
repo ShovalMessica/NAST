@@ -33,13 +33,14 @@ python eval/ued_calculator.py \
 
 ### 3. Output
 
-The UED calculator will compute the UED scores for each audio augmentation specified in the configuration and display the results in the console. If Weights and Biases is configured, the scores will also be logged to your specified project and entity.
+The UED calculator will compute the UED scores for each audio augmentation specified in the configuration and display the results in the console. If Weights and Biases is configured, the scores will also be logged with the respective checkpoint.
 
 #### Note:
 Ensure all necessary dependencies are installed, including `wandb` if you are using Weights and Biases for logging. You can install dependencies via:
 
 ```bash
 pip install -r requirements.txt
+pip install wandb
 ```
 
 For detailed installation instructions, refer to the installation section or the provided `requirements.txt` file.
