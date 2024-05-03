@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
-from examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
-from augmentations.metrics_transformations import trans_noise_0_5, trans_noise_5_30, trans_time_stretch, trans_pitch_shift, trans_reverberation
+from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
+from augmentations.metrics_transformations import trans_noise_5_30, trans_time_stretch, trans_pitch_shift, trans_reverberation
 from jiwer import wer
 from datasets.paths_dataset import PathsDataset
 import numpy as np
