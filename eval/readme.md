@@ -17,6 +17,7 @@ Execute the UED calculator with the command below. Replace placeholders with act
 python eval/ued_calculator.py \
   --dataset_tsv_path /path/to/dataset.tsv \
   --config_path /path/to/training_config.yaml \
+  --use_wanb true_or_false \
   --wandb_project your_project_name \
   --wandb_entity your_entity_name
 ```
@@ -24,6 +25,7 @@ python eval/ued_calculator.py \
 #### Parameters:
 - `--dataset_tsv_path`: Path to the TSV file containing the dataset.
 - `--config_path`: Path to the YAML configuration file.
+- `--use_wandb`: Enable logging with Weights and Biases.
 - `--wandb_project`: (Optional) Weights & Biases project name for logging the UED scores.
 - `--wandb_entity`: (Optional) Weights & Biases entity name.
 
