@@ -49,9 +49,9 @@ diversity:
   max_weight: 10.0
 
 datasets:
-  train_tsv_path: "/path/to/train/dataset"
-  val_tsv_path: "/path/to/val/dataset"
-  test_tsv_path: "/path/to/test/dataset"
+  train_tsv_path: "/path/to/train/tsv/file"
+  val_tsv_path: "/path/to/val/tsv/file"
+  test_tsv_path: "/path/to/test/tsv/file"
 
 checkpoints:
   hubert: "/path/to/hubert/checkpoints"
