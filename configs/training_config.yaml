@@ -55,11 +55,5 @@ datasets:
 
 checkpoints:
   hubert: "/path/to/hubert/checkpoints"
-  tokenizer:
-      50_units: "/path/to/tokenizer/50/units"
-      100_units: "/path/to/tokenizer/100/units"
-      200_units: "/path/to/tokenizer/200/units"
-  ulm:
-      50_units: "/path/to/ulm/50/units"
-      100_units: "/path/to/ulm/100/units"
-      200_units: "/path/to/ulm/200/units"
+  tokenizer: "/path/to/tokenizer"
+  ulm: "/path/to/ulm"
