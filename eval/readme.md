@@ -43,4 +43,4 @@ pip install -r requirements.txt
 pip install wandb
 ```
 
-For detailed installation instructions, refer to the installation section or the provided `requirements.txt` file.
+For detailed installation instructions, refer to the setup section or the provided `requirements.txt` file.
