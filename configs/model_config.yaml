@@ -2,8 +2,8 @@
   in_channels: 768
   num_units: 50
   reconstruction_type: HuBERT
-  quantize: false
-  _global: false
+  discrete_local: false
+  continous_global: false
   hubert_speaker: false
   predictor:
     num_heads: 8
@@ -25,8 +25,8 @@
   in_channels: 768
   num_units: 100
   reconstruction_type: HuBERT
-  quantize: false
-  _global: false
+  discrete_local: false
+  continous_global: false
   hubert_speaker: false
   predictor:
     num_heads: 8
