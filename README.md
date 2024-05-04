@@ -21,6 +21,43 @@ conda install --file requirements.txt
 ```
 
 ## Usage
+```python
+import yaml
+import torch
+from examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
+from network import Network
+
+# Paths to the configuration file and input audio file
+config_path = "/path/to/config.yaml"
+audio_path = "/path/to/audio.wav"
+
+# Load the configuration
+with open(config_path, "r") as f:
+    config = yaml.safe_load(f)
+
+# Set the discrete_local flag to True for unit extraction
+config["discrete_local"] = True
+
+# Set the device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Load the pre-trained model
+feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9, max_chunk=1600000)
+network = Network(config=config, device=device)
+
+# Load the audio file
+audio = feature_extractor.read_audio(audio_path)
+
+# Extract HuBERT features from the audio file
+features = feature_extractor.get_feats(audio)
+
+# Pass the features through the network to get the unit sequence
+with torch.no_grad():
+    units = network(features.to(device))
+
+# Print the extracted unit sequence
+print("Extracted units:", units.tolist())
+```
 
 ## Acoustic Model
 For quantizing speech we learn NAST clustering over HuBERT Base acoustic representation. For using the pretrained model, please download from the link below.
