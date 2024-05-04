@@ -34,6 +34,12 @@ You can download pretrained tokenization model from the list below.
 | HuBERT Base + 100 units |[download](https://drive.google.com/file/d/199YLQO8InNHfUbxkYjPLDwToPxmaiMi1/view?usp=drive_link)|
 | HuBERT Base + 200 units |[download](https://drive.google.com/file/d/1KdyyYpWItsSJEoDLc-qo4YFGTCaUXmBQ/view?usp=drive_link)|
 
+- Speaker Probing Task
+For insights into speaker information evaluation using the NAST framework, follow the detaileds provided [here](eval/readme.md#Speaker Probing Task).
+
+- UED Calculator
+To evaluate the Unit Edit Distance for models trained with NAST, use our UED calculator. Detailed instructions and tools can be found [here](eval/readme.md#Unit-Edit-Distance (UED) Calculation).
+
 ## Unit Language Model (ULM)
 You can download pretrained unit language models from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) to train new models using fairseq. All language models were trained and evaluated on the deduplicated unit transcriptions of the respective NAST version.
 | ULM Model | Download Link |
