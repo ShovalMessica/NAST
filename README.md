@@ -35,7 +35,7 @@ with open(config_path, "r") as f:
 config["discrete_local"] = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9, max_chunk=1600000)
+feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9)
 network = Network(config=config, device=device)
 
 audio = feature_extractor.read_audio(audio_path)
