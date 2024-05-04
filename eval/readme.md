@@ -4,7 +4,7 @@ For evaluating speaker information, we utilize [textlesslib's Speaker Probing ta
 
 #### Configuring the Tokenizer Model Output
 
-To configure the output representation of the tokenizer model, you must modify the settings in the configuration file. This adjustment controls whether the model outputs discrete or continuous representations, which are crucial for different types of analysis tasks:
+To configure the output representation of the tokenizer model, you must modify the settings in the configuration file. This adjustment controls whether the model outputs discrete or continuous representations:
 
 - **Discrete Units Representation**: Set `config[num_units]["discrete_local"]` to `True`. 
 
