@@ -15,7 +15,6 @@ conda create -n nast
 conda activate nast
 git clone https://github.com/ShovalMessica/NAST.git
 
-# install requirements
 cd nast
 conda install --file requirements.txt
 ```
@@ -24,7 +23,7 @@ conda install --file requirements.txt
 ```python
 import yaml
 import torch
-from examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
+from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
 from network import Network
 
 config_path = "/path/to/config.yaml"
