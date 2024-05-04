@@ -10,7 +10,7 @@ To configure the output representation of the tokenizer model, you must modify t
 
 - **Continuous Global Representation**: Set `config[num_units]["continuous_global"]` to `True`.
 
-By setting these configuration options, you can effectively control how the tokenizer processes and outputs speech data, making it suitable for your specific research needs in speaker information evaluation.
+By setting these configuration options, you can easily choose how the output representation, making it suitable for your specific needs in speaker information evaluation.
 
 **Run the Probing Task**: Follow the detailed steps provided in the [textlesslib speaker probing guide](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing) to execute the probing task.
 
