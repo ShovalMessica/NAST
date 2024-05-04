@@ -5,9 +5,10 @@ import torch.nn.functional as F
 from typing import Dict, Any
 
 class Network(nn.Module):
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any], device: torch.device = torch.device("cpu")):
         super().__init__()
         self.config = config
+        self.device = device
         self.in_channels = config["in_channels"]
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
@@ -21,9 +22,9 @@ class Network(nn.Module):
             ffn_dim=config["predictor"]["ffn_dim"],
             num_layers=config["predictor"]["num_layers"],
             depthwise_conv_kernel_size=config["predictor"]["depthwise_conv_kernel_size"]
-        )
+        ).to(self.device)
         
-        self.projector = nn.Linear(self.in_channels, self.num_units)
+        self.projector = nn.Linear(self.in_channels, self.num_units).to(self.device)
 
         self.residual_encoder = self._build_conformer(
             input_dim=self.in_channels,
@@ -31,9 +32,9 @@ class Network(nn.Module):
             ffn_dim=config["residual_encoder"]["ffn_dim"],
             num_layers=config["residual_encoder"]["num_layers"],
             depthwise_conv_kernel_size=config["residual_encoder"]["depthwise_conv_kernel_size"]
-        )
+        ).to(self.device)
         
-        self.residual_projector = nn.Linear(768, 256)
+        self.residual_projector = nn.Linear(768, 256).to(self.device)
 
         self.decoder = self._build_conformer(
             input_dim=self.num_units + 256,
@@ -41,9 +42,9 @@ class Network(nn.Module):
             ffn_dim=config["decoder"]["ffn_dim"],
             num_layers=config["decoder"]["num_layers"],
             depthwise_conv_kernel_size=config["decoder"]["depthwise_conv_kernel_size"]
-        )
+        ).to(self.device)
         
-        self.decoder_projection = nn.Linear(self.num_units + 256, self.out_channels)
+        self.decoder_projection = nn.Linear(self.num_units + 256, self.out_channels).to(self.device)
 
     def _build_conformer(self, input_dim, num_heads, ffn_dim, num_layers, depthwise_conv_kernel_size):
         return torchaudio.models.Conformer(
