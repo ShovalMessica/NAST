@@ -12,8 +12,6 @@ To configure the output representation of the tokenizer model, you must modify t
 
 By setting these configuration options, you can easily choose how the output representation, making it suitable for your specific needs in speaker information evaluation.
 
-**Run the Probing Task**: Follow the detailed steps provided in the [textlesslib speaker probing guide](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing) to execute the probing task.
-
 ## Unit-Edit-Distance (UED) Calculation
 
 The UED calculator measures the unit edit distance for audio processing tasks. Follow these steps to utilize the calculator:
@@ -56,5 +54,3 @@ Ensure all necessary dependencies are installed, including `wandb` if you are us
 pip install -r requirements.txt
 pip install wandb
 ```
-
-For detailed installation instructions, refer to the setup section or the provided `requirements.txt` file.
