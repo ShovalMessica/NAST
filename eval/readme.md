@@ -2,7 +2,7 @@
 
 For evaluating speaker information, we utilize [textlesslib's Speaker Probing task](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing). This task helps in assessing how much speaker information is retained in the generated speech representations.
 
-# Configuring the Tokenizer Model Output
+#### Configuring the Tokenizer Model Output
 
 To configure the output representation of the tokenizer model, you must modify the settings in the configuration file. This adjustment controls whether the model outputs discrete or continuous representations, which are crucial for different types of speaker analysis tasks:
 
