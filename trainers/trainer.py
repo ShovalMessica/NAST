@@ -13,8 +13,6 @@ from utils.logger import get_logger
 from utils.checkpoint_utils import save_checkpoint, load_checkpoint
 from eval.validator import Validator
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 class Trainer:
     def __init__(self, model, optimizer, train_dataset, val_dataset, config_path, checkpoint_dir):
         self.model = model
