@@ -1,3 +1,19 @@
+## Speaker Probing Task
+
+For evaluating speaker information, we utilize [textlesslib's Speaker Probing task](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing). This task helps in assessing how much speaker information is retained in the generated speech representations.
+
+### Configuring the Tokenizer Model Output
+
+To configure the output representation of the tokenizer model, you must modify the settings in the configuration file. This adjustment controls whether the model outputs discrete or continuous representations, which are crucial for different types of speaker analysis tasks:
+
+- **Discrete Units Representation**: Set `config[num_units]["discrete_local"]` to `True`. 
+
+- **Continuous Global Representation**: Set `config[num_units]["continuous_global"]` to `True`.
+
+By setting these configuration options, you can effectively control how the tokenizer processes and outputs speech data, making it suitable for your specific research needs in speaker information evaluation.
+
+**Run the Probing Task**: Follow the detailed steps provided in the [textlesslib speaker probing guide](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing) to execute the probing task.
+
 ## Unit-Edit-Distance (UED) Calculation
 
 The UED calculator measures the unit edit distance for audio processing tasks. Follow these steps to utilize the calculator:
