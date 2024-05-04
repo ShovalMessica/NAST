@@ -1,6 +1,6 @@
 ## Speaker Probing Task
 
-For evaluating speaker information, we utilize [textlesslib's Speaker Probing task](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing). This task helps in assessing how much speaker information is retained in the generated speech representations.
+For evaluating speaker information, we utilize [textlesslib's Speaker Probing task](https://github.com/facebookresearch/textlesslib/tree/main/examples/speaker_probing). 
 
 #### Configuring the Tokenizer Model Output
 
