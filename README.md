@@ -35,7 +35,7 @@ You can download pretrained tokenization model from the list below.
 | HuBERT Base + 200 units |[download](https://drive.google.com/file/d/1KdyyYpWItsSJEoDLc-qo4YFGTCaUXmBQ/view?usp=drive_link)|
 
 - Speaker Probing Task
-For insights into speaker information evaluation using the NAST framework, follow the detaileds provided [here](eval/readme.md#Speaker Probing Task).
+For insights into speaker information evaluation using the NAST framework, follow the detaileds provided [here](eval/readme.md#speaker-probing-task).
 
 - UED Calculator
 To evaluate the Unit Edit Distance for models trained with NAST, use our UED calculator. Detailed instructions and tools can be found [here](.eval/README.md#Unit-Edit-Distance (UED) Calculation).
