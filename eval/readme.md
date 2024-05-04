@@ -22,7 +22,7 @@ python eval/ued_calculator.py \
   --wandb_entity your_entity_name
 ```
 
-#### Parameters:
+#### Command-line arguments:
 - `--dataset_tsv_path`: Path to the TSV file containing the dataset.
 - `--config_path`: Path to the YAML configuration file.
 - `--use_wandb`: (Optional) Enable logging with Weights and Biases.
