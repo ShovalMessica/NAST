@@ -10,7 +10,7 @@ To configure the output representation of the tokenizer model, you must modify t
 
 - **Continuous Global Representation**: Set `config[num_units]["continuous_global"]` to `True`.
 
-By setting these configuration options, you can easily choose how the output representation, making it suitable for your specific needs in speaker information evaluation.
+By setting these configuration options, you can easily choose the output representation, making it suitable for your specific needs in speaker information evaluation.
 
 ## Unit-Edit-Distance (UED) Calculation
 
