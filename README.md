@@ -15,7 +15,7 @@ conda create -n nast
 conda activate nast
 git clone https://github.com/ShovalMessica/NAST.git
 
-cd nast
+cd NAST
 conda install --file requirements.txt
 ```
 
