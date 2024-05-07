@@ -13,7 +13,7 @@ class Network(nn.Module):
         self.num_units = config["num_units"]
         self.vocab_size = config["num_units"]
         self.discrete_local = config["discrete_local"]
-        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" 
+        self.out_channels = 768 if config["reconstruction_type"] == "HuBERT" else None
         self.continous_global = config["continous_global"]
 
         self.predictor = self._build_conformer(
