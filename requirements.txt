@@ -7,7 +7,7 @@ matplotlib
 numpy
 omegaconf
 pandas
-torch>=1.1.0
+torch
 torchaudio
 tqdm
 tweepy
