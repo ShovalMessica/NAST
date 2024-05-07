@@ -1,5 +1,5 @@
 pytorch
-fairseq==0.12.2
+fairseq
 jiwer
 joblib
 librosa
