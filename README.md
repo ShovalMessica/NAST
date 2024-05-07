@@ -17,7 +17,7 @@ git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
 conda install --file requirements.txt
-pip install torch AMFM-decompy pyroomacoustics
+pip install AMFM-decompy pyroomacoustics
 ```
 
 ## Usage Example
