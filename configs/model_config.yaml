@@ -1,4 +1,6 @@
 models:
+  hubert:
+    checkpoint_path: "/path/to/hubert_checkpoint.pt"
   50:
     in_channels: 768
     num_units: 50
