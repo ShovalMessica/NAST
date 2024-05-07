@@ -54,5 +54,6 @@ datasets:
   test_tsv_path: "/path/to/test/tsv/file"
 
 checkpoints:
+  hubert: "/path/to/hubert"
   tokenizer: "/path/to/tokenizer"
   ulm: "/path/to/ulm"
