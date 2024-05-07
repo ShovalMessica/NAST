@@ -1,5 +1,4 @@
 pytorch
-fairseq
 jiwer
 joblib
 librosa
