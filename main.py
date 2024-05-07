@@ -1,53 +1,24 @@
-import argparse
 import yaml
 import torch
-from torch.optim import Adam
-from network import Network
-from trainer import Trainer
-from datasets.paths_dataset import PathsDataset
-from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
-from augmentations.audio_augmentations import AudioAugmentations
+from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
+from models.network import Network
 
-def main(args):
-    # Load the configuration files
-    with open(args.training_config, 'r') as f:
-        training_config = yaml.safe_load(f)
-    with open(args.model_config, 'r') as f:
-        model_config = yaml.safe_load(f)
+config_path = "/path/to/config.yaml"
+audio_path = "/path/to/audio.wav"
 
-    # Set the device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+with open(config_path, "r") as f:
+    config = yaml.safe_load(f)
 
-    # Load the pre-trained HuBERT feature extractor
-    hubert_ckpt_path = training_config['checkpoints']['hubert']
-    feature_extractor = HubertFeatureReader(hubert_ckpt_path, layer=9)
+config["discrete_local"] = True
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load the model configuration
-    model_config = model_config[args.model_name]
-    model = Network(config=model_config, device=device)
+feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9)
+network = Network(config=config, device=device)
 
-    # Load the optimizer
-    optimizer = Adam(model.parameters(), lr=training_config['training']['learning_rate'])
+audio = feature_extractor.read_audio(audio_path)
+features = feature_extractor.get_feats(audio)
 
-    # Load the datasets
-    train_dataset = PathsDataset(tsv_file=training_config['datasets']['train_tsv_path'])
-    val_dataset = PathsDataset(tsv_file=training_config['datasets']['val_tsv_path'])
+with torch.no_grad():
+    units = network(features.to(device))
 
-    # Create the audio augmentations
-    audio_augmentations = AudioAugmentations(training_config)
-
-    # Create the trainer
-    trainer = Trainer(model, optimizer, train_dataset, val_dataset, args.training_config, args.checkpoint_dir)
-
-    # Start training
-    trainer.train()
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train and evaluate the model.')
-    parser.add_argument('--training_config', type=str, required=True, help='Path to the training configuration file.')
-    parser.add_argument('--model_config', type=str, required=True, help='Path to the model configuration file.')
-    parser.add_argument('--model_name', type=str, required=True, choices=['50_units', '100_units', '200_units'], help='Name of the model configuration to use.')
-    parser.add_argument('--checkpoint_dir', type=str, default='checkpoints', help='Directory to save the model checkpoints.')
-    args = parser.parse_args()
-
-    main(args)
+print("Extracted units:", units.tolist()) # [10 11 11 11 21 32 32 32 21]
