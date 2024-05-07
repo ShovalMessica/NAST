@@ -25,7 +25,7 @@ pip install fairseq AMFM-decompy pyroomacoustics
 import yaml
 import torch
 from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
-from network import Network
+from models.network import Network
 
 config_path = "/path/to/config.yaml"
 audio_path = "/path/to/audio.wav"
