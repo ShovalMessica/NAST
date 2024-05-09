@@ -16,7 +16,7 @@ from eval.validator import Validator
 
 
 class Trainer:
-    def __init__(self, model, optimizer, train_dataset, val_dataset, config_path, checkpoint_dir, device):
+    def __init__(self, model, optimizer, config_path, checkpoint_dir, device):
         self.model = model
         self.optimizer = optimizer
         self.training_config = load_config(config_path)
