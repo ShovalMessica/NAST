@@ -35,14 +35,13 @@ audio_path = "/path/to/audio.wav"
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
-config["discrete_local"] = True
+config[num_units]["discrete_local"] = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9)
+feature_extractor = HubertFeatureReader(config['hubert']['checkpoint_path'], layer=9)
 network = Network(config=config, device=device)
 
-audio = feature_extractor.read_audio(audio_path)
-features = feature_extractor.get_feats(audio)
+features = feature_extractor.get_feats(audio_path)
 
 with torch.no_grad():
     units = network(features.to(device))
