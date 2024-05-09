@@ -1,4 +1,3 @@
-pytorch
 jiwer
 joblib
 librosa
