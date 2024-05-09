@@ -11,7 +11,7 @@ Official implementation of NAST: Noise Aware Speech Tokenization for Speech Lang
 ## Setup Environment
 Create a conda environment and install the requirements, replace `cuda-12.0.0` bellow with the appropriate CUDA version on your machine:
 ```python
-conda create -n nast python=3.8 pytorch=1.13.1 cudatoolkit=11.7 -c pytorch -c conda-forge
+conda create -n nast python=3.9 pytorch=1.13.1 cudatoolkit=11.7 torchaudio -c pytorch -c conda-forge
 conda activate nast
 git clone https://github.com/ShovalMessica/NAST.git
 
