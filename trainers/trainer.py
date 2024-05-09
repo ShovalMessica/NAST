@@ -4,7 +4,7 @@ import torch
 from utils.config import load_config
 from torch.utils.data import DataLoader
 from datasets.paths_dataset import PathsDataset
-from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
+from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
 from augmentations.transformations import AudioAugmentations
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
@@ -16,10 +16,10 @@ from eval.validator import Validator
 
 
 class Trainer:
-    def __init__(self, model, optimizer, config_path, checkpoint_dir, device):
+    def __init__(self, model, optimizer, config, checkpoint_dir, device):
         self.model = model
         self.optimizer = optimizer
-        self.training_config = load_config(config_path)
+        self.training_config = config
         self.feature_extractor = HubertFeatureReader(self.training_config['checkpoints']['hubert'], layer=9)
         self.train_dataset = PathsDataset(tsv_file=self.training_config['datasets']['train_tsv_path'])
         self.val_dataset = PathsDataset(tsv_file=self.training_config['datasets']['val_tsv_path'])

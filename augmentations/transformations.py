@@ -1,5 +1,5 @@
 import random
-from audio_transformations import InjectNoise, TimeWarp, PitchShift, AddReverb
+from augmentations.audio_transformations import InjectNoise, TimeWarp, PitchShift, AddReverb
 
 
 class AudioAugmentations:

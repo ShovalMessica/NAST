@@ -1,11 +1,12 @@
 import torch
 from typing import List, Dict
-from fairseq.examples.hubert.simple_kmeans.dump_hubert_feature import HubertFeatureReader
-from augmentations.audio_augmentations import AudioAugmentations
+from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
+from augmentations.transformations import AudioAugmentations
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
 from utils.logger import get_logger
+
 
 class Validator:
     def __init__(self, model, feature_extractor, audio_augmentations, training_config):
@@ -50,17 +51,19 @@ class Validator:
         if epoch < self.training_config['phase1']['epochs']:
             # Phase 1: Reconstruction and Diversity Loss
             if self.training_config['phase1']['losses']['reconstruction']:
-                total_loss += self.training_config['phase1']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
+                total_loss += self.training_config['phase1']['weights']['reconstruction'] * val_loss_dict[
+                    'reconstruction_loss']
             if self.training_config['phase1']['losses']['diversity']:
                 total_loss += self.training_config['phase1']['weights']['diversity'] * val_loss_dict['diversity_loss']
         else:
             # Phase 2: All Losses
             if self.training_config['phase2']['losses']['reconstruction']:
-                total_loss += self.training_config['phase2']['weights']['reconstruction'] * val_loss_dict['reconstruction_loss']
+                total_loss += self.training_config['phase2']['weights']['reconstruction'] * val_loss_dict[
+                    'reconstruction_loss']
             if self.training_config['phase2']['losses']['diversity']:
                 total_loss += self.training_config['phase2']['weights']['diversity'] * val_loss_dict['diversity_loss']
             if self.training_config['phase2']['losses']['cross_entropy']:
-                total_loss += self.training_config['phase2']['weights']['cross_entropy'] * val_loss_dict['ce_loss'] 
+                total_loss += self.training_config['phase2']['weights']['cross_entropy'] * val_loss_dict['ce_loss']
 
         return total_loss
 
@@ -75,16 +78,17 @@ class Validator:
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
                 augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT"
+                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else None
 
-                val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features, epoch)
+                val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features,
+                                                                 epoch)
                 val_loss_dicts.append(val_loss_dict)
 
         avg_val_loss_dict = self.average_loss_dicts(val_loss_dicts)
         total_val_loss = self.calculate_total_validation_loss(avg_val_loss_dict, epoch)
 
         self.log_validation_losses(avg_val_loss_dict, epoch, batch_idx)
-        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}], Total Validation Loss: {total_val_loss:.4f}")
+        self.logger.info(f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}], Total Validation Loss: {total_val_loss:.4f}")
 
         self.model.train()
         return total_val_loss
@@ -94,7 +98,7 @@ class Validator:
         return avg_loss_dict
 
     def log_validation_losses(self, val_loss_dict: Dict[str, float], epoch: int, batch_idx: int):
-        self.logger.info(f"Epoch [{epoch+1}], Batch [{batch_idx+1}], Validation Losses:")
+        self.logger.info(f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}], Validation Losses:")
         self.logger.info(f"Reconstruction Loss: {val_loss_dict['reconstruction_loss']:.4f}")
         self.logger.info(f"Diversity Loss: {val_loss_dict['diversity_loss']:.4f}")
         self.logger.info(f"Cross-Entropy Loss: {val_loss_dict['ce_loss']:.4f}")

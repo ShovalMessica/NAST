@@ -1,6 +1,7 @@
 import yaml
 
-def load_config(model_name: str) -> Dict[str, Any]:
+
+def load_config(model_name: str):
     """
     Load the configuration for the specified model.
 
@@ -10,6 +11,6 @@ def load_config(model_name: str) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Loaded configuration dictionary.
     """
-    with open(f"config/{model_name}.yaml", "r") as f:
+    with open(f"{model_name}.yaml", "r") as f:
         config = yaml.safe_load(f)
     return config
