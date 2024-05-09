@@ -18,7 +18,7 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
-conda install --file requirements.txt -c conda-forge -c pytorch
+conda install --file requirements.txt
 pip3 install fairseq AMFM-decompy pyroomacoustics
 ```
 
