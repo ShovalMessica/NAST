@@ -1,4 +1,6 @@
 import random
+from audio_transformations import InjectNoise, TimeWarp, PitchShift, AddReverb
+
 
 class AudioAugmentations:
     def __init__(self, config, phase):
@@ -13,7 +15,8 @@ class AudioAugmentations:
         )
 
         self.trans_time_stretch = TimeWarp(
-            rates=(self.config['augmentations']['time_warp']['min_rate'], self.config['augmentations']['time_warp']['max_rate']),
+            rates=(self.config['augmentations']['time_warp']['min_rate'],
+                   self.config['augmentations']['time_warp']['max_rate']),
             probability=1.0
         )
 

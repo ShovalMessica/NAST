@@ -1,14 +1,28 @@
+import os
 import torch
 
-def save_checkpoint(model: torch.nn.Module, ckpt_path: str) -> None:
+
+def save_checkpoint(model: torch.nn.Module, epoch: int, batch_idx: int, checkpoint_dir: str, is_best: bool) -> None:
     """
     Save the model's state dictionary to a checkpoint file.
 
     Args:
-        model (torch.nn.Module): Model to save.
-        ckpt_path (str): Path to save the checkpoint.
+        model (torch.nn.Module): The PyTorch model to save.
+        epoch (int): The current epoch number.
+        batch_idx (int): The current batch index within the epoch.
+        checkpoint_dir (str): The directory where the checkpoint files will be saved.
+        is_best (bool): True if the model has the best performance so far, False otherwise.
     """
-    torch.save(model.state_dict(), ckpt_path)
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    save_name = 'best_model.pt' if is_best else f'epoch_{epoch}_batch_{batch_idx}.pt'
+    save_dict = model.state_dict()
+    checkpoint_path = os.path.join(checkpoint_dir, save_name)
+    try:
+        torch.save(save_dict, checkpoint_path)
+        print(f"Checkpoint saved: {checkpoint_path}")
+    except IOError as e:
+        print(f"Error saving checkpoint: {e}")
+
 
 def load_checkpoint(model: torch.nn.Module, ckpt_path: str) -> None:
     """
