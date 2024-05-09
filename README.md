@@ -9,17 +9,17 @@ Official implementation of NAST: Noise Aware Speech Tokenization for Speech Lang
 <b>Abstract:</b> Speech tokenization is the task of representing speech signals as a sequence of discrete units. Such representations can be later used for various downstream tasks including automatic speech recognition, text-to-speech, etc. More relevant to this study, such representation serves as the basis of Speech Language Models. In this work, we tackle the task of speech tokenization under the noisy setup and present NAST: Noise Aware Speech Tokenization for Speech Language Models. NAST is composed of three main components: (i) a predictor; (ii) a residual encoder; and (iii) a decoder. We evaluate the efficiency of NAST considering several speech language modeling tasks, and show that NAST is superior to the evaluated baselines across all setups. Lastly, we analyze NAST and show its disentanglement properties and robustness to signal variations in the form of noise, reverberation, pitch-shift, and time-stretch. 
 
 ## Setup Environment
-Create a conda environment and install the requirements, replace `cudatoolkit=11.7` bellow with the appropriate CUDA version on your machine:
+Create a conda environment and install the requirements, replace `cu118` bellow with the appropriate CUDA version on your machine:
 ```python
 conda create -n nast python=3.9 -c conda-forge
 conda activate nast
 
-conda install pytorch torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
 conda install --file requirements.txt -c conda-forge -c pytorch
-pip install fairseq AMFM-decompy pyroomacoustics
+pip3 install fairseq AMFM-decompy pyroomacoustics
 ```
 
 ## Usage Example
