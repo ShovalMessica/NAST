@@ -14,8 +14,7 @@ Create a conda environment and install the requirements, replace `cudatoolkit=11
 conda create -n nast python=3.8 -c conda-forge
 conda activate nast
 
-conda install -c conda-forge cuda=11.7.1
-conda install pytorch=1.13.1 torchaudio -c pytorch -c conda-forge
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
 git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
