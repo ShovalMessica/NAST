@@ -8,3 +8,4 @@ pandas
 tqdm
 tweepy
 yaml
+scipy=1.10.1
