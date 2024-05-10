@@ -14,7 +14,7 @@ Create a conda environment and install the requirements, replace `cu118` bellow 
 conda create -n nast python=3.9 -c conda-forge
 conda activate nast
 
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip3 install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
 git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
