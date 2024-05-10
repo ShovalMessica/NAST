@@ -19,7 +19,7 @@ git clone https://github.com/ShovalMessica/NAST.git
 
 cd NAST
 conda install --file requirements.txt
-pip3 install fairseq AMFM-decompy pyroomacoustics
+pip3 install fairseq AMFM-decompy pyroomacoustics==0.7.3
 ```
 
 ## Usage Example
