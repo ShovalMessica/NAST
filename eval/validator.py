@@ -34,13 +34,13 @@ class Validator:
             if self.training_config['phase1']['losses']['reconstruction']:
                 val_loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)
             if self.training_config['phase1']['losses']['diversity']:
-                val_loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x, self.model.num_units)
+                val_loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x)
             if self.training_config['phase2']['losses']['cross_entropy']:
                 val_loss_dict['ce_loss'] += self.cross_entropy_loss(predicts_augmented_x, one_hot_x)
 
         batch_size = len(clean_features)
         val_loss_dict['reconstruction_loss'] /= batch_size
-        val_loss_dict['diversity_loss'] /= batch_size
+        val_loss_dict['diversity_loss'] /= self.model.num_units
         val_loss_dict['ce_loss'] /= batch_size
 
         return val_loss_dict
@@ -78,7 +78,7 @@ class Validator:
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
                 clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
                 augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else None
+                target_features = clean_features if self.training_config[self.model.num_units]['reconstruction_type'] == "HuBERT" else None
 
                 val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features,
                                                                  epoch)

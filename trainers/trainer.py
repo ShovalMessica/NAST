@@ -20,6 +20,7 @@ class Trainer:
         self.model = model
         self.optimizer = optimizer
         self.training_config = config
+        self.num_units = model.num_units
         self.feature_extractor = HubertFeatureReader(self.training_config['checkpoints']['hubert'], layer=9)
         self.train_dataset = PathsDataset(tsv_file=self.training_config['datasets']['train_tsv_path'])
         self.val_dataset = PathsDataset(tsv_file=self.training_config['datasets']['val_tsv_path'])
@@ -64,7 +65,7 @@ class Trainer:
                 clean_features = [get_feats(self.feature_extractor, x) for x in clean_audio]
                 augmented_features = [get_feats(self.feature_extractor, x) for x in augmented_audio]
 
-                target_features = clean_features if self.model.reconstruction_type == "HuBERT" else None
+                target_features = clean_features if self.training_config[self.num_units]['reconstruction_type'] == "HuBERT" else None
 
                 loss, loss_dict = self.calculate_loss(clean_features, augmented_features, target_features, epoch,
                                                       ce_loss_weight, diversity_weight)
@@ -121,14 +122,14 @@ class Trainer:
             if self.training_config['phase1']['losses']['reconstruction']:
                 loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)
             if self.training_config['phase1']['losses']['diversity']:
-                loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x, self.model.num_units)
+                loss_dict['diversity_loss'] += self.diversity_loss(one_hot_x)
             if epoch >= self.training_config['phase1']['epochs'] and self.training_config['phase2']['losses'][
                 'cross_entropy']:
                 loss_dict['ce_loss'] += self.cross_entropy_loss(predicts_augmented_x, one_hot_x)
 
         batch_size = len(clean_features)
         loss_dict['reconstruction_loss'] /= batch_size
-        loss_dict['diversity_loss'] /= batch_size
+        loss_dict['diversity_loss'] /= self.num_units
         loss_dict['ce_loss'] /= batch_size
 
         if epoch < self.training_config['phase1']['epochs']:
@@ -157,10 +158,16 @@ class Trainer:
         ce_loss = loss_dict['ce_loss']
         total_loss = loss_dict['total_loss']
 
-        self.logger.info(
-            f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], Reconstruction Loss: {reconstruction_loss:.4f}")
-        self.logger.info(
-            f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], Diversity Loss: {diversity_loss:.4f}")
-        self.logger.info(
-            f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], Cross-Entropy Loss: {ce_loss:.4f}")
-        self.logger.info(f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], Total Loss: {total_loss:.4f}")
+        if self.audio_augmentations.phase == 'phase1':
+            self.logger.info(
+                f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], "
+                f"Reconstruction Loss: {reconstruction_loss:.4f}, "
+                f"Diversity Loss: {diversity_loss:.4f}, "
+                f"Total Loss: {total_loss:.4f}")
+        else:
+            self.logger.info(
+                f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], "
+                f"Reconstruction Loss: {reconstruction_loss:.4f}, "
+                f"Diversity Loss: {diversity_loss:.4f}, "
+                f"Total Loss: {total_loss:.4f}, "
+                f"Cross-Entropy Loss: {ce_loss:.4f}")

@@ -23,7 +23,7 @@ def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss: torch.Tensor, ce
         Tuple[float, torch.Tensor, bool]: Updated cross-entropy loss weight, previous cross-entropy loss value, and stabilization flag.
     """
     if not ce_loss_stabilized:
-        if abs(ce_loss - ce_loss_prev) < config['cross_entropy']['stabilization_threshold']:
+        if abs(ce_loss - ce_loss_prev) < float(config['cross_entropy']['stabilization_threshold']):
             ce_loss_stabilized = True
         else:
             ce_loss_weight = min(ce_loss_weight * config['cross_entropy']['weight_increment_factor'],
