@@ -1,7 +1,37 @@
 import numpy as np
+import math
+import torch.nn as nn
 from pyroomacoustics.room import SoundSource
 from pyroomacoustics.parameters import constants
 from pyroomacoustics.directivities import Directivity
+from fairseq.models.wav2vec.wav2vec2 import SamePad
+import fairseq.models.wav2vec.wav2vec2 as wav2vec2
+
+
+def modified_make_conv_pos(e, k, g, is_batch_norm=False):
+    pos_conv = nn.Conv1d(
+        e,
+        e,
+        kernel_size=k,
+        padding=k // 2,
+        groups=g,
+    )
+    dropout = 0
+    std = math.sqrt((4 * (1.0 - dropout)) / (k * e))
+    nn.init.normal_(pos_conv.weight, mean=0, std=std)
+    nn.init.constant_(pos_conv.bias, 0)
+
+    if not is_batch_norm:
+        pos_conv = nn.utils.parametrizations.weight_norm(pos_conv, name="weight", dim=2)
+        pos_conv = nn.Sequential(pos_conv, SamePad(k), nn.GELU())
+    else:
+        batch_norm = nn.BatchNorm1d(e)
+        pos_conv = nn.Sequential(batch_norm, pos_conv, SamePad(k), nn.GELU())
+
+    return pos_conv
+
+
+wav2vec2.make_conv_pos = modified_make_conv_pos
 
 
 def modified_get_rir(self, mic, visibility, Fs, t0=0.0, t_max=None):
@@ -69,5 +99,6 @@ def modified_get_rir(self, mic, visibility, Fs, t0=0.0, t_max=None):
                                                           ] * fractional_delay(time_fp)
 
     return ir
+
 
 SoundSource.get_rir = modified_get_rir
