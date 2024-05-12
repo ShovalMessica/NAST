@@ -83,7 +83,7 @@ class Trainer:
 
                 # Log training progress
                 if (batch_idx + 1) % log_interval == 0:
-                    writer.add_scalar('Loss/train', loss_dict, epoch, batch_idx)
+                    writer.add_scalar('Loss/train', loss_dict['total_loss'], epoch, batch_idx)
                     self.log_losses(loss_dict, epoch, batch_idx, len(train_loader))
 
                 # Adjust Cross-Entropy Loss weight
