@@ -54,7 +54,7 @@ features = get_feats(feature_extractor, audio)
 with torch.no_grad():
     units = network(features.to(device))
 
-print("Extracted units:", units.tolist()) # [10, 11, 11, 11, 11, 9, 9, 23, 30, ... ]
+print("Extracted units:", units.tolist()) # [10, 11, 11, 11, 11, 9, 9, 23, 30 ... ]
 ```
 
 ## Acoustic Model
