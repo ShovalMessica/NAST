@@ -55,7 +55,7 @@ For quantizing speech we learn NAST clustering over [HuBERT Base](https://github
 ## Tokenization Model
 You can download pretrained tokenization model from the list below, or train one using the following command:
 ```
-python train.py --training_config_path path/to/config --model_config_path path/to/config
+python train.py --training_config_path path/to/training/config --model_config_path path/to/model/config
 ```
 | NAST Model | Download Link |
 |-----------------|:-----------------:|
