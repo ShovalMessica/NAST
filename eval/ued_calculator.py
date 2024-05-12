@@ -1,26 +1,29 @@
+import os
 import torch
 from torch.utils.data import DataLoader
 from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
-from augmentations.metrics_transformations import trans_noise_5_30, trans_time_stretch, trans_pitch_shift, trans_reverberation
+from utils.training_utils import read_audio, get_feats
+from torch.utils.tensorboard import SummaryWriter
+from utils.checkpoint import load_checkpoint
+from utils.config import load_config
+from augmentations.transformations import AudioAugmentations
 from jiwer import wer
+from models.network import Network
 from datasets.paths_dataset import PathsDataset
-import numpy as np
 from typing import List
-from utils.checkpoint_utils import load_checkpoint
-import wandb
 import argparse
-import yaml
+
+log_dir = os.path.join(os.path.dirname(__file__), '..', 'runs/UED')
+writer = SummaryWriter(log_dir)
+
 
 class UEDCalculator:
-    def __init__(self, network, feature_extractor, device, use_wandb=False, wandb_project=None, wandb_entity=None):
+    def __init__(self, network, feature_extractor, config, device):
         self.network = network
         self.feature_extractor = feature_extractor
         self.device = device
-        self.augmentations = [trans_pitch_shift, trans_reverberation, trans_noise_5_30, trans_time_stretch]
-        self.augmentations_str = ["Pitch Shift", "Reverberation", "Noise 5-30", "Time Stretch"]
-        self.use_wandb = use_wandb
-        self.wandb_project = wandb_project
-        self.wandb_entity = wandb_entity
+        self.audio_augmentations = AudioAugmentations(config, phase='phase2').augmentations
+        self.augmentations_str = ["Noise 5-30", "Time Stretch", "Pitch Shift", "Reverberation"]
 
     def deduped(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -60,11 +63,12 @@ class UEDCalculator:
 
         with torch.no_grad():
             for batch in data_loader:
-                clean_audio_batch = [self.feature_extractor.read_audio(x) for x in batch]
+                clean_audio_batch = [read_audio(self.feature_extractor, x) for x in batch]
                 augmented_audio_batch = [augmentation(x) for x in clean_audio_batch]
 
-                clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio_batch]
-                augmented_features = [self.feature_extractor.get_feats(x).to(self.device) for x in augmented_audio_batch]
+                clean_features = [get_feats(self.feature_extractor, x) for x in clean_audio_batch]
+                augmented_features = [get_feats(self.feature_extractor, x).to(self.device) for x in
+                                      augmented_audio_batch]
 
                 target_labels, predicted_labels = [], []
                 for clean_feat, augmented_feat in zip(clean_features, augmented_features):
@@ -84,13 +88,8 @@ class UEDCalculator:
 
         ued = (total_ued / total_units) * 100
         print(f"{augmentation_str} UED: {ued:.2f}%")
-
-        if self.use_wandb:
-            if not wandb.run:
-                wandb.init(project=self.wandb_project, entity=self.wandb_entity, resume="allow")
-            wandb.log({f"{augmentation_str} UED": ued})
-            if ckpt_path:
-                wandb.save(ckpt_path)
+        writer.add_scalar(augmentation_str, ued, int(ckpt_path.split('_')[1]),
+                          int(ckpt_path.split('_')[-1].split('.')[0]))
 
         return ued
 
@@ -106,33 +105,34 @@ class UEDCalculator:
             List[float]: List of UED values for each augmentation.
         """
         ueds = []
-        for augmentation, augmentation_str in zip(self.augmentations, self.augmentations_str):
+        print("Starting UED scores calculation ...")
+        for augmentation, augmentation_str in zip(self.audio_augmentations, self.augmentations_str):
             ued = self.calc_ued(augmentation, augmentation_str, dataset, ckpt_path)
             ueds.append(ued)
 
-        if self.wandb_project is not None and self.wandb_entity is not None:
-            wandb.init(project=self.wandb_project, entity=self.wandb_entity)
-            wandb.log({"UED": wandb.Table(data=list(zip(self.augmentations_str, ueds)), columns=["Augmentation", "UED"])})
-            wandb.finish()
-
         return ueds
+
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate UED for different augmentations.")
-    parser.add_argument("--dataset_tsv_path", type=str, required=True, help="Path to the TSV file containing the dataset for UED calculation.")
-    parser.add_argument("--config_path", type=str, required=True, help="Path to the configuration YAML file.")
-    parser.add_argument("--use_wandb", action='store_true', help="Enable logging with Weights and Biases.")
-    parser.add_argument("--wandb_project", type=str, default=None, help="Weights and Biases project name.")
-    parser.add_argument("--wandb_entity", type=str, default=None, help="Weights and Biases entity name.")
+    parser.add_argument("--dataset_tsv_path", type=str, required=True,
+                        help="Path to the TSV file containing the dataset for UED calculation.")
+    parser.add_argument("--training_config_path", type=str, required=True, help="Path to the training configuration "
+                                                                                "YAML file.")
+    parser.add_argument("--model_config_path", type=str, required=True,
+                        help="Path to the model configuration YAML file.")
+    parser.add_argument("--model_ckpt_path", type=str, required=True,
+                        help="Path to the model checkpoints.")
+
     args = parser.parse_args()
 
-    # Load the configuration
-    with open(args.config_path, "r") as f:
-        config = yaml.safe_load(f)
+    config = load_config(args.training_config_path, args.model_config_path)
 
     # Load the pre-trained model
     feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9, max_chunk=1600000)
     network = Network(config=config)
+    load_checkpoint(network, args.model_ckpt_path)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     network.to(device)
 
@@ -140,10 +140,12 @@ def main():
     dataset = PathsDataset(tsv_file=args.dataset_tsv_path)
 
     # Create the UEDCalculator
-    ued_calculator = UEDCalculator(network, feature_extractor, device, args.use_wandb, args.wandb_project, args.wandb_entity)
+    ued_calculator = UEDCalculator(network, feature_extractor, config, device)
 
     # Calculate UED for all augmentations
-    ued_calculator.calc_ued_all_augmentations(dataset, config['checkpoints']['tokenizer'])
+    ued_calculator.calc_ued_all_augmentations(dataset, args.model_ckpt_path)
+
 
 if __name__ == "__main__":
     main()
+    writer.close()
