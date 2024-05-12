@@ -13,6 +13,7 @@ from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
 from utils.training_utils import adjust_cross_entropy_weight, synchronize_diversity_weight, read_audio, get_feats
 from utils.logger import get_logger
+from torch.utils.tensorboard import SummaryWriter
 from utils.checkpoint import save_checkpoint, load_checkpoint
 from eval.validator import Validator
 
@@ -39,6 +40,8 @@ class Trainer:
         self.device = device
 
     def train(self):
+        writer = SummaryWriter('runs/experiment_1')
+
         self.logger.info(f"Starting Training Process ...")
         num_epochs = self.training_config['training']['num_epochs']
         batch_size = self.training_config['training']['batch_size']
@@ -80,6 +83,7 @@ class Trainer:
 
                 # Log training progress
                 if (batch_idx + 1) % log_interval == 0:
+                    writer.add_scalar('Loss/train', loss_dict, epoch, batch_idx)
                     self.log_losses(loss_dict, epoch, batch_idx, len(train_loader))
 
                 # Adjust Cross-Entropy Loss weight
@@ -101,6 +105,7 @@ class Trainer:
                 # Validate the model
                 if (batch_idx + 1) % self.validation_interval == 0:
                     val_loss = self.validator.validate(val_loader, epoch, batch_idx)
+                    writer.add_scalar('Loss/valid', val_loss, epoch, batch_idx)
 
                     # Save the best model checkpoint
                     if val_loss < self.best_val_loss:
@@ -110,6 +115,8 @@ class Trainer:
             # Update the phase for the next epoch
             if epoch == self.training_config['phase1']['epochs'] - 1:
                 self.audio_augmentations.phase = 'phase2'
+
+        writer.close()
 
     def calculate_loss(self, clean_features, augmented_features, target_features, epoch, ce_loss_weight,
                        diversity_weight):
@@ -190,4 +197,4 @@ class Trainer:
         print(f"\r{log_message}", end="", flush=True)
 
         if batch_idx + 1 == num_batches:
-            print()  # Move to the next line after the last batch
+            print()
