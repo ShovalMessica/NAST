@@ -1,10 +1,9 @@
 import torch
 from typing import List, Dict
-from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
-from augmentations.transformations import AudioAugmentations
 from losses.reconstruction_loss import ReconstructionLoss
 from losses.diversity_loss import DiversityLoss
 from losses.cross_entropy_loss import CrossEntropyLoss
+from utils.training_utils import read_audio, get_feats
 from utils.logger import get_logger
 
 
@@ -68,16 +67,17 @@ class Validator:
         return total_loss
 
     def validate(self, val_loader, epoch, batch_idx) -> float:
+        self.logger.info(f"Starting validation for Epoch [{epoch + 1}], Batch [{batch_idx + 1}]")
         self.model.eval()
 
         val_loss_dicts = []
 
         with torch.no_grad():
             for batch in val_loader:
-                clean_audio = [self.feature_extractor.read_audio(x) for x in batch]
+                clean_audio = [read_audio(self.feature_extractor, x) for x in batch]
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
-                clean_features = [self.feature_extractor.get_feats(x) for x in clean_audio]
-                augmented_features = [self.feature_extractor.get_feats(x) for x in augmented_audio]
+                clean_features = [get_feats(self.feature_extractor, x) for x in clean_audio]
+                augmented_features = [get_feats(self.feature_extractor, x) for x in augmented_audio]
                 target_features = clean_features if self.training_config[self.model.num_units]['reconstruction_type'] == "HuBERT" else None
 
                 val_loss_dict = self.calculate_validation_losses(clean_features, augmented_features, target_features,
