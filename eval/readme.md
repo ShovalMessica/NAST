@@ -42,4 +42,4 @@ python eval/ued_calculator.py \
 
 ### 3. Output
 
-The UED calculator will compute the UED scores for each audio augmentation specified in the configuration and display the results in the console. If Weights and Biases is configured, the scores will also be logged with the respective checkpoint.
+The UED calculator will compute the UED scores for each audio augmentation specified in the configuration and display the results in the console. The scores will also be logged with respect to the epoch and batch mentioned in the checkpoint path.
