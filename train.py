@@ -1,30 +1,39 @@
+import argparse
+
 import torch
 from models.network import Network
 from trainers.trainer import Trainer
 from utils.config import load_config
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load the training configuration
-config_path = "configs/training_config.yaml"
-training_config = load_config(config_path)
+def main():
+    parser = argparse.ArgumentParser(description="Train configuration arguments")
+    parser.add_argument("--training_config_path", type=str, required=True,
+                        help="Path to the training configuration YAML file.")
+    parser.add_argument("--model_config_path", type=str, required=True,
+                        help="Path to the model configuration YAML file.")
 
-# Load the model configuration
-model_config_path = "configs/model_config.yaml"
-model_config = load_config(model_config_path)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Create an instance of the Network
-model = Network(config=model_config, device=device)
+    args = parser.parse_args()
+    config = load_config(args.training_config_path, args.model_config_path)
 
-# Create an optimizer for the model
-optimizer = torch.optim.Adam(model.parameters(), lr=training_config['training']['learning_rate'])
+    # Create an instance of the Network
+    model = Network(config=config, device=device)
 
-# Create an instance of the Trainer
-trainer = Trainer(model=model,
-                  optimizer=optimizer,
-                  config_path=config_path,
-                  checkpoint_dir="checkpoints/",
-                  device=device)
+    # Create an optimizer for the model
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
 
-# Start the training process
-trainer.train()
+    # Create an instance of the Trainer
+    trainer = Trainer(model=model,
+                      optimizer=optimizer,
+                      config=config,
+                      checkpoint_dir="checkpoints/",
+                      device=device)
+
+    # Start the training process
+    trainer.train()
+
+
+if __name__ == "__main__":
+    main()
