@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List
 import logging
 
 import torch
@@ -7,50 +7,51 @@ import torch.nn.functional as F
 from fairseq.data.audio.audio_utils import get_features_or_waveform
 
 
-def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss: torch.Tensor, ce_loss_prev: torch.Tensor,
-                                ce_loss_stabilized: bool, config: Dict[str, Any]) -> Tuple[float, torch.Tensor, bool]:
+def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss_tracking: List[torch.Tensor], ce_loss_stabilized: bool,
+                                config: Dict[str, Any]) -> Tuple[float, bool]:
     """
     Adjust the cross-entropy loss weight based on the stabilization threshold and increment factor.
 
     Args:
         ce_loss_weight (float): Cross-entropy loss weight.
-        ce_loss (torch.Tensor): Current cross-entropy loss value.
-        ce_loss_prev (torch.Tensor): Previous cross-entropy loss value.
+        ce_loss_tracking (List[torch.Tensor]): List of cross-entropy loss values from the last 10 iterations.
         ce_loss_stabilized (bool): Flag indicating if the cross-entropy loss has stabilized.
         config (Dict[str, Any]): Configuration dictionary.
 
     Returns:
-        Tuple[float, torch.Tensor, bool]: Updated cross-entropy loss weight, previous cross-entropy loss value, and stabilization flag.
+        Tuple[float, bool]: Updated cross-entropy loss weight and stabilization flag.
     """
     if not ce_loss_stabilized:
-        if abs(ce_loss - ce_loss_prev) < float(config['cross_entropy']['stabilization_threshold']):
-            ce_loss_stabilized = True
-        else:
-            ce_loss_weight = min(ce_loss_weight * config['cross_entropy']['weight_increment_factor'],
-                                 config['cross_entropy']['max_weight'])
-            ce_loss_prev = ce_loss
-    return ce_loss_weight, ce_loss_prev, ce_loss_stabilized
+        if len(ce_loss_tracking) >= 10:
+            max_loss = max(loss.item() for loss in ce_loss_tracking)
+            min_loss = min(loss.item() for loss in ce_loss_tracking)
+            if max_loss - min_loss < float(config['cross_entropy']['stabilization_threshold']):
+                ce_loss_stabilized = True
+            else:
+                ce_loss_weight = min(ce_loss_weight * config['cross_entropy']['weight_increment_factor'],
+                                     config['cross_entropy']['max_weight'])
+    return ce_loss_weight, ce_loss_stabilized
 
 
-def synchronize_diversity_weight(diversity_loss: torch.Tensor, diversity_prev: torch.Tensor, diversity_weight: float,
-                                 config: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
+def synchronize_diversity_weight(diversity_weight: float, config: Dict[str, Any], one_hot_vectors: List[torch.Tensor], diversity_threshold: int) -> float:
     """
-    Synchronize the diversity weight based on the current and previous diversity loss values.
+    Synchronize the diversity weight based on the number of unique units in the batch.
 
     Args:
-        diversity_loss (torch.Tensor): Current diversity loss value.
-        diversity_prev (torch.Tensor): Previous diversity loss value.
         diversity_weight (float): Current diversity weight.
         config (Dict[str, Any]): Configuration dictionary.
+        one_hot_vectors (List[torch.Tensor]): List of one-hot vectors from the current batch.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: Updated diversity weight and previous diversity loss value.
+        float: Updated diversity weight.
     """
-    if diversity_loss < diversity_prev:
-        diversity_weight = min(diversity_weight * config['diversity']['synchronization_factor'],
+    unique_units = torch.cat([torch.argmax(v, dim=1) for v in one_hot_vectors]).unique().size(0)
+
+    if unique_units < diversity_threshold:
+        diversity_weight = max(diversity_weight * config['diversity']['synchronization_factor'],
                                config['diversity']['max_weight'])
-    diversity_prev = diversity_loss
-    return diversity_weight, diversity_prev
+
+    return diversity_weight
 
 
 # Copyright (c) Facebook, Inc. and its affiliates.

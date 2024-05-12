@@ -1,9 +1,6 @@
-import os
 import utils.override
-from typing import Dict, Any
+from typing import Dict
 import torch
-from tqdm import tqdm
-from utils.config import load_config
 from torch.utils.data import DataLoader
 from datasets.paths_dataset import PathsDataset
 from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
@@ -14,7 +11,7 @@ from losses.cross_entropy_loss import CrossEntropyLoss
 from utils.training_utils import adjust_cross_entropy_weight, synchronize_diversity_weight, read_audio, get_feats
 from utils.logger import get_logger
 from torch.utils.tensorboard import SummaryWriter
-from utils.checkpoint import save_checkpoint, load_checkpoint
+from utils.checkpoint import save_checkpoint
 from eval.validator import Validator
 
 
@@ -37,6 +34,7 @@ class Trainer:
         self.validation_interval = self.training_config['training']['validation_interval']
         self.audio_augmentations = AudioAugmentations(self.training_config, phase='phase1')
         self.validator = Validator(self.model, self.feature_extractor, self.audio_augmentations, self.training_config)
+        self.diversity_threshold = self.training_config["diversity"]["threshold_percentage"][self.num_units]
         self.device = device
 
     def train(self):
@@ -52,13 +50,13 @@ class Trainer:
 
         ce_loss_weight = self.training_config['phase2']['weights']['cross_entropy']
         ce_loss_stabilized = False
-        ce_loss_prev = torch.tensor(float('inf')).to(self.device)
+        ce_loss_tracking = []
 
         diversity_weight = self.training_config['phase2']['weights']['diversity']
-        diversity_prev = torch.tensor(0.0).to(self.device)
 
         for epoch in range(num_epochs):
-            self.logger.info(f"Start training epoch [{epoch + 1}], Training Phase: {self.audio_augmentations.phase[-1]}")
+            self.logger.info(
+                f"Start training epoch [{epoch + 1}], Training Phase: {self.audio_augmentations.phase[-1]}")
             self.model.train()
 
             for batch_idx, batch in enumerate(train_loader):
@@ -68,7 +66,6 @@ class Trainer:
                 clean_audio = [read_audio(self.feature_extractor, x) for x in batch]
                 augmented_audio = [self.audio_augmentations.augment(x) for x in clean_audio]
 
-                # Extract HuBERT features from the audio file
                 clean_features = [get_feats(self.feature_extractor, x) for x in clean_audio]
                 augmented_features = [get_feats(self.feature_extractor, x) for x in augmented_audio]
 
@@ -86,17 +83,21 @@ class Trainer:
                     writer.add_scalar('Loss/train', loss_dict['total_loss'], epoch, batch_idx)
                     self.log_losses(loss_dict, epoch, batch_idx, len(train_loader))
 
+                ce_loss_tracking.append(loss_dict['ce_loss'])
+                if len(ce_loss_tracking) > 10:
+                    ce_loss_tracking = ce_loss_tracking[-10:]
+
                 # Adjust Cross-Entropy Loss weight
-                ce_loss_weight, ce_loss_prev, ce_loss_stabilized = adjust_cross_entropy_weight(ce_loss_weight,
-                                                                                               loss_dict['ce_loss'],
-                                                                                               ce_loss_prev,
-                                                                                               ce_loss_stabilized,
-                                                                                               self.training_config)
+                ce_loss_weight, ce_loss_stabilized = adjust_cross_entropy_weight(ce_loss_weight,
+                                                                                 ce_loss_tracking,
+                                                                                 ce_loss_stabilized,
+                                                                                 self.training_config)
 
                 # Synchronize Diversity Loss weight
-                diversity_weight, diversity_prev = synchronize_diversity_weight(loss_dict['diversity_loss'],
-                                                                                diversity_prev, diversity_weight,
-                                                                                self.training_config)
+                diversity_weight = synchronize_diversity_weight(diversity_weight,
+                                                                self.training_config,
+                                                                loss_dict['one_hot_vectors'],
+                                                                self.diversity_threshold)
 
                 # Save checkpoint
                 if (batch_idx + 1) % self.checkpoint_interval == 0:
@@ -130,6 +131,8 @@ class Trainer:
         for x, augmented_x, rec_target in zip(clean_features, augmented_features, target_features):
             rec_x, one_hot_x, predicts_x = self.model(x)
             rec_augmented_x, one_hot_augmented_x, predicts_augmented_x = self.model(augmented_x)
+
+            loss_dict['one_hot_vectors'].append(one_hot_x)
 
             if self.training_config['phase1']['losses']['reconstruction']:
                 loss_dict['reconstruction_loss'] += self.reconstruction_loss(rec_x, rec_target)

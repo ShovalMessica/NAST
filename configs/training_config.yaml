@@ -12,7 +12,7 @@ augmentations:
     strong: True
 
 training:
-  num_epochs: 100
+  num_epochs: 2
   batch_size: 32
   learning_rate: 0.001
   checkpoint_interval: 100
@@ -20,7 +20,7 @@ training:
   log_interval: 10
 
 phase1:
-  epochs: 50
+  epochs: 1
   losses:
     reconstruction: True
     diversity: True
@@ -46,6 +46,10 @@ cross_entropy:
 
 diversity:
   synchronization_factor: 1.1
+  threshold_percentage:
+    50: 45
+    100: 85
+    200: 120
   max_weight: 10.0
 
 datasets:
