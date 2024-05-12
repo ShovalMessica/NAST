@@ -20,7 +20,7 @@ The UED calculator measures the unit edit distance for audio processing tasks. F
 Ensure you have the following files prepared:
 
 - **Dataset TSV File:** A TSV file containing the dataset for UED calculation.
-- **Configuration Files:** A YAML files (`training_config.yaml, model_config.yaml`) specifying the network architecture and training parameters.
+- **Configuration Files:** A YAML files (`training_config.yaml, model_config.yaml`) specifying the network and training parameters.
 - **Model Checkpoint File:** A file containing the pre-trained model weights.
 
 ### 2. Running the UED Calculator
