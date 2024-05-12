@@ -38,7 +38,7 @@ class Trainer:
         self.device = device
 
     def train(self):
-        writer = SummaryWriter('runs/experiment_1')
+        writer = SummaryWriter('runs/Train')
 
         self.logger.info(f"Starting Training Process ...")
         num_epochs = self.training_config['training']['num_epochs']
@@ -83,15 +83,17 @@ class Trainer:
                     writer.add_scalar('Loss/train', loss_dict['total_loss'], epoch, batch_idx)
                     self.log_losses(loss_dict, epoch, batch_idx, len(train_loader))
 
-                ce_loss_tracking.append(loss_dict['ce_loss'])
-                if len(ce_loss_tracking) > 10:
-                    ce_loss_tracking = ce_loss_tracking[-10:]
+                if self.audio_augmentations.phase == 'phase2':
 
-                # Adjust Cross-Entropy Loss weight
-                ce_loss_weight, ce_loss_stabilized = adjust_cross_entropy_weight(ce_loss_weight,
-                                                                                 ce_loss_tracking,
-                                                                                 ce_loss_stabilized,
-                                                                                 self.training_config)
+                    ce_loss_tracking.append(loss_dict['ce_loss'])
+                    if len(ce_loss_tracking) > 10:
+                        ce_loss_tracking = ce_loss_tracking[-10:]
+
+                    # Adjust Cross-Entropy Loss weight
+                    ce_loss_weight, ce_loss_stabilized = adjust_cross_entropy_weight(ce_loss_weight,
+                                                                                     ce_loss_tracking,
+                                                                                     ce_loss_stabilized,
+                                                                                     self.training_config)
 
                 # Synchronize Diversity Loss weight
                 diversity_weight = synchronize_diversity_weight(diversity_weight,
