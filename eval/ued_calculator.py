@@ -1,4 +1,9 @@
 import os
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
 import torch
 from torch.utils.data import DataLoader
 from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
@@ -129,7 +134,7 @@ def main():
     config = load_config(args.training_config_path, args.model_config_path)
 
     # Load the pre-trained model
-    feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9, max_chunk=1600000)
+    feature_extractor = HubertFeatureReader(config['checkpoints']['hubert'], layer=9)
     network = Network(config=config)
     load_checkpoint(network, args.model_ckpt_path)
 
