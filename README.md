@@ -37,7 +37,6 @@ num_units = 100
 
 model_config = load_config(model_config_path)
 config = {**model_config, 'num_units': num_units}
-
 config['hubert']['checkpoint_path'] = "path/to/hubert/checkpoint.pt"
 config[num_units]["discrete_local"] = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +47,6 @@ load_checkpoint(network, "path/to/tokenizer/checkpoint")
 
 audio = read_audio(feature_extractor, audio_path)
 features = get_feats(feature_extractor, audio)
-
 with torch.no_grad():
     units = network(features.to(device))
 
