@@ -127,7 +127,8 @@ class Trainer:
             'reconstruction_loss': torch.tensor(0.0).to(self.device),
             'diversity_loss': torch.tensor(0.0).to(self.device),
             'ce_loss': torch.tensor(0.0).to(self.device),
-            'total_loss': torch.tensor(0.0).to(self.device)
+            'total_loss': torch.tensor(0.0).to(self.device),
+            'one_hot_vectors': []
         }
 
         for x, augmented_x, rec_target in zip(clean_features, augmented_features, target_features):
