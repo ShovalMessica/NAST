@@ -46,7 +46,7 @@ cross_entropy:
 
 diversity:
   synchronization_factor: 1.1
-  threshold_percentage:
+  threshold_number:
     50: 45
     100: 85
     200: 120

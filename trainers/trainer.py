@@ -34,7 +34,7 @@ class Trainer:
         self.validation_interval = self.training_config['training']['validation_interval']
         self.audio_augmentations = AudioAugmentations(self.training_config, phase='phase1')
         self.validator = Validator(self.model, self.feature_extractor, self.audio_augmentations, self.training_config)
-        self.diversity_threshold = self.training_config["diversity"]["threshold_percentage"][self.num_units]
+        self.diversity_threshold = self.training_config["diversity"]["threshold_number"][self.num_units]
         self.device = device
 
     def train(self):
