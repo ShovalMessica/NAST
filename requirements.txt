@@ -8,4 +8,5 @@ pandas
 tqdm
 tweepy
 yaml
+tensorboard
 scipy=1.10.1
