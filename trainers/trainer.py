@@ -2,6 +2,7 @@ import os
 import utils.override
 from typing import Dict, Any
 import torch
+from tqdm import tqdm
 from utils.config import load_config
 from torch.utils.data import DataLoader
 from datasets.paths_dataset import PathsDataset
@@ -38,6 +39,7 @@ class Trainer:
         self.device = device
 
     def train(self):
+        self.logger.info(f"Starting Training Process ...")
         num_epochs = self.training_config['training']['num_epochs']
         batch_size = self.training_config['training']['batch_size']
         log_interval = self.training_config['training']['log_interval']
@@ -53,6 +55,7 @@ class Trainer:
         diversity_prev = torch.tensor(0.0).to(self.device)
 
         for epoch in range(num_epochs):
+            self.logger.info(f"Start training epoch [{epoch + 1}], Training Phase: {self.audio_augmentations.phase[-1]}")
             self.model.train()
 
             for batch_idx, batch in enumerate(train_loader):
@@ -66,7 +69,8 @@ class Trainer:
                 clean_features = [get_feats(self.feature_extractor, x) for x in clean_audio]
                 augmented_features = [get_feats(self.feature_extractor, x) for x in augmented_audio]
 
-                target_features = clean_features if self.training_config[self.num_units]['reconstruction_type'] == "HuBERT" else None
+                target_features = clean_features if self.training_config[self.num_units][
+                                                        'reconstruction_type'] == "HuBERT" else None
 
                 loss, loss_dict = self.calculate_loss(clean_features, augmented_features, target_features, epoch,
                                                       ce_loss_weight, diversity_weight)
@@ -92,7 +96,7 @@ class Trainer:
 
                 # Save checkpoint
                 if (batch_idx + 1) % self.checkpoint_interval == 0:
-                    save_checkpoint(self.model, epoch, batch_idx, self.checkpoint_dir, is_best=False)
+                    save_checkpoint(self.model, epoch + 1, batch_idx + 1, self.checkpoint_dir, is_best=False)
 
                 # Validate the model
                 if (batch_idx + 1) % self.validation_interval == 0:
@@ -101,7 +105,7 @@ class Trainer:
                     # Save the best model checkpoint
                     if val_loss < self.best_val_loss:
                         self.best_val_loss = val_loss
-                        save_checkpoint(self.model, epoch, batch_idx, self.checkpoint_dir, is_best=False)
+                        save_checkpoint(self.model, epoch + 1, batch_idx + 1, self.checkpoint_dir, is_best=False)
 
             # Update the phase for the next epoch
             if epoch == self.training_config['phase1']['epochs'] - 1:
@@ -159,16 +163,31 @@ class Trainer:
         ce_loss = loss_dict['ce_loss']
         total_loss = loss_dict['total_loss']
 
+        progress = (batch_idx + 1) / num_batches
+        progress_bar_length = 20
+        filled_length = int(progress_bar_length * progress)
+        progress_bar = '█' * filled_length + '-' * (progress_bar_length - filled_length)
+        progress_percentage = f"{progress * 100:.1f}%"
+
         if self.audio_augmentations.phase == 'phase1':
-            self.logger.info(
-                f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], "
+            log_message = (
+                f"Epoch [{epoch + 1}] | "
+                f"[{batch_idx + 1}/{num_batches}] | "
                 f"Reconstruction Loss: {reconstruction_loss:.4f}, "
                 f"Diversity Loss: {diversity_loss:.4f}, "
-                f"Total Loss: {total_loss:.4f}")
+                f"Total Loss: {total_loss:.4f}   |{progress_bar}| {progress_percentage} "
+            )
         else:
-            self.logger.info(
-                f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}/{num_batches}], "
+            log_message = (
+                f"Epoch [{epoch + 1}] | "
+                f"[{batch_idx + 1}/{num_batches}] | "
                 f"Reconstruction Loss: {reconstruction_loss:.4f}, "
                 f"Diversity Loss: {diversity_loss:.4f}, "
-                f"Total Loss: {total_loss:.4f}, "
-                f"Cross-Entropy Loss: {ce_loss:.4f}")
+                f"Cross-Entropy Loss: {ce_loss:.4f}, "
+                f"Total Loss: {total_loss:.4f}   |{progress_bar}| {progress_percentage} "
+            )
+
+        print(f"\r{log_message}", end="", flush=True)
+
+        if batch_idx + 1 == num_batches:
+            print()  # Move to the next line after the last batch

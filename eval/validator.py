@@ -67,6 +67,7 @@ class Validator:
         return total_loss
 
     def validate(self, val_loader, epoch, batch_idx) -> float:
+        print()
         self.logger.info(f"Starting validation for Epoch [{epoch + 1}], Batch [{batch_idx + 1}]")
         self.model.eval()
 
@@ -101,4 +102,5 @@ class Validator:
         self.logger.info(f"Epoch [{epoch + 1}], Batch [{batch_idx + 1}], Validation Losses:")
         self.logger.info(f"Reconstruction Loss: {val_loss_dict['reconstruction_loss']:.4f}")
         self.logger.info(f"Diversity Loss: {val_loss_dict['diversity_loss']:.4f}")
-        self.logger.info(f"Cross-Entropy Loss: {val_loss_dict['ce_loss']:.4f}")
+        if self.audio_augmentations.phase == 'phase2':
+            self.logger.info(f"Cross-Entropy Loss: {val_loss_dict['ce_loss']:.4f}")
