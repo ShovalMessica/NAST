@@ -45,6 +45,7 @@ config[num_units]["discrete_local"] = True
 
 feature_extractor = HubertFeatureReader(config['hubert']['checkpoint_path'], layer=9)
 network = Network(config=config, device=device)
+
 load_checkpoint(network, "path/to/tokenizer/checkpoint")
 
 audio = read_audio(feature_extractor, audio_path)
@@ -53,7 +54,7 @@ features = get_feats(feature_extractor, audio)
 with torch.no_grad():
     units = network(features.to(device))
 
-print("Extracted units:", units.tolist())
+print("Extracted units:", units.tolist()) # [10, 11, 11, 11, 11, 9, 9, 23, 30, ... ]
 ```
 
 ## Acoustic Model
