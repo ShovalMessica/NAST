@@ -53,7 +53,10 @@ print("Extracted units:", units.tolist()) # [10 11 11 11 21 32 32 32 21]
 For quantizing speech we learn NAST clustering over [HuBERT Base](https://github.com/facebookresearch/fairseq/blob/main/examples/hubert/README.md) acoustic representation. For using the pretrained model, please download from the [link](https://dl.fbaipublicfiles.com/hubert/hubert_base_ls960.pt).
 
 ## Tokenization Model
-You can download pretrained tokenization model from the list below. 
+You can download pretrained tokenization model from the list below, or train one using the following command:
+```
+python train.py --training_config_path path/to/training/config --model_config_path path/to/model/config
+```
 | NAST Model | Download Link |
 |-----------------|:-----------------:|
 | HuBERT Base + 50 units | [download](https://drive.google.com/file/d/1PDkV-m-kELx9fUeqmqPFWcbomHNddR1p/view?usp=drive_link)|
