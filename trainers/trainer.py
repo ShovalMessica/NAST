@@ -49,7 +49,6 @@ class Trainer:
         val_loader = DataLoader(self.val_dataset, batch_size=batch_size)
 
         ce_loss_weight = self.training_config['phase2']['weights']['cross_entropy']
-        ce_loss_stabilized = False
         ce_loss_tracking = []
 
         diversity_weight = self.training_config['phase2']['weights']['diversity']
@@ -90,10 +89,9 @@ class Trainer:
                         ce_loss_tracking = ce_loss_tracking[-10:]
 
                     # Adjust Cross-Entropy Loss weight
-                    ce_loss_weight, ce_loss_stabilized = adjust_cross_entropy_weight(ce_loss_weight,
-                                                                                     ce_loss_tracking,
-                                                                                     ce_loss_stabilized,
-                                                                                     self.training_config)
+                    ce_loss_weight = adjust_cross_entropy_weight(ce_loss_weight,
+                                                                ce_loss_tracking,
+                                                                self.training_config)
 
                 # Synchronize Diversity Loss weight
                 diversity_weight = synchronize_diversity_weight(diversity_weight,
