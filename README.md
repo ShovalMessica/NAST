@@ -24,6 +24,7 @@ pip3 install fairseq AMFM-decompy pyroomacoustics==0.7.3
 
 ## Usage Example
 ```python
+import utils.override
 import torch
 from fairseq.examples.textless_nlp.gslm.speech2unit.pretrained.hubert_feature_reader import HubertFeatureReader
 from utils.training_utils import read_audio, get_feats
