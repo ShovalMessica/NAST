@@ -93,11 +93,11 @@ class Trainer:
                                                                 ce_loss_tracking,
                                                                 self.training_config)
 
-                # Synchronize Diversity Loss weight
-                diversity_weight = synchronize_diversity_weight(diversity_weight,
-                                                                self.training_config,
-                                                                loss_dict['one_hot_vectors'],
-                                                                self.diversity_threshold)
+                    # Synchronize Diversity Loss weight
+                    diversity_weight = synchronize_diversity_weight(diversity_weight,
+                                                                    self.training_config,
+                                                                    loss_dict['one_hot_vectors'],
+                                                                    self.diversity_threshold)
 
                 # Save checkpoint
                 if (batch_idx + 1) % self.checkpoint_interval == 0:
