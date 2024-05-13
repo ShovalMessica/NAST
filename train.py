@@ -18,10 +18,8 @@ def main():
     args = parser.parse_args()
     config = load_config(args.training_config_path, args.model_config_path)
 
-    # Create an instance of the Network
     model = Network(config=config, device=device)
 
-    # Create an optimizer for the model
     optimizer = torch.optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
 
     # Create an instance of the Trainer
