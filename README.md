@@ -81,13 +81,13 @@ python train.py --training_config_path path/to/training/config --model_config_pa
 #### Implementation Details:
 
 **1. Phase I:**
-   - Losses Used: Only *reconstruction* and *diversity* losses are active.
-   - Augmentations: Augmentations are applied with a probability of `p` (e.g 0.5), aiming to expose the model to varied and unclean speech during the initial stages of unit formation.
+   - Only *reconstruction* and *diversity* losses are active.
+   - Augmentations are applied with a probability of `p` (e.g 0.5), aiming to expose the model to varied and unclean speech during the initial stages of unit formation.
      
 **2. Phase II:**
-   - Losses Used: All three losses, including *cross-entropy*, are active.
-   - Stabilization Mechanism: A stabilization mechanism implemented in `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
-   - Augmentations: Augmentations are applied with a probability of 1, meaning all data will undergo augmentation to enhance the model's robustness and generalization capabilities.
+   - All three losses, including *cross-entropy*, are active.
+   - A stabilization mechanism implemented in `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
+   - Augmentations are applied with a probability of 1, meaning all data will undergo augmentation to enhance the model's robustness and generalization capabilities.
 
 ## Unit Language Model (ULM)
 You can download pretrained unit language models from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) to train new models using fairseq. All language models were trained and evaluated on the deduplicated unit transcriptions of the respective NAST version.
