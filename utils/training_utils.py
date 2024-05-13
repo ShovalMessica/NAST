@@ -46,7 +46,7 @@ def synchronize_diversity_weight(diversity_weight: float, config: Dict[str, Any]
     unique_units = torch.cat([torch.argmax(v, dim=1) for v in one_hot_vectors]).unique().size(0)
 
     if unique_units < diversity_threshold:
-        diversity_weight = max(diversity_weight * config['diversity']['synchronization_factor'],
+        diversity_weight = min(diversity_weight * config['diversity']['synchronization_factor'],
                                config['diversity']['max_weight'])
 
     return diversity_weight
