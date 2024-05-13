@@ -79,9 +79,11 @@ To train the tokenization model, execute the command below from the root directo
 python train.py --training_config_path path/to/training/config --model_config_path path/to/model/config
 ```
 **Implementation Details:**
+
 **1. Phase I:**
    - Losses Used: Only reconstruction and diversity losses are active.
-   - Augmentations: Augmentations are applied with a probability of `p` (e.g 0.5), aiming to expose the model to varied and unclean speech during the initial stages of unit formation. 
+   - Augmentations: Augmentations are applied with a probability of `p` (e.g 0.5), aiming to expose the model to varied and unclean speech during the initial stages of unit formation.
+     
 **2. Phase II:**
    - Losses Used: All three losses, including cross-entropy, are active.
    - Stabilization Mechanism: A stabilization mechanism from `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
