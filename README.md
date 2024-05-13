@@ -78,7 +78,7 @@ To train the tokenization model, execute the command below from the root directo
 ```
 python train.py --training_config_path path/to/training/config --model_config_path path/to/model/config
 ```
-#### Implementation Details: Our training procedure is designed to ensure stability and effectiveness, utilizing three distinct loss functions. The training is structured in two phases, each controlled by parameters set in the configuration file:
+**Implementation Details:** Our training procedure is designed to ensure stability and effectiveness, utilizing three distinct loss functions. The training is structured in two phases, each controlled by parameters set in the configuration file.
 
 **1. Phase I:**
    - Only *reconstruction* and *diversity* losses are active.
