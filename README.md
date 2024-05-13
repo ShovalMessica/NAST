@@ -80,11 +80,11 @@ python train.py --training_config_path path/to/training/config --model_config_pa
 ```
 **Implementation Details:** Our training procedure is designed to ensure stability and effectiveness, utilizing three distinct loss functions. The training is structured in two phases, each controlled by parameters set in the configuration file.
 
-**1. Phase I:**
+**Phase I:**
    - Only *reconstruction* and *diversity* losses are active.
    - Augmentations are applied with a probability of `p` (e.g 0.5), aiming to expose the model to varied and unclean speech during the initial stages of unit formation.
      
-**2. Phase II:**
+**Phase II:**
    - All three losses, including *cross-entropy*, are active.
    - A stabilization mechanism implemented in `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
    - Augmentations are applied with a probability of 1, meaning all data will undergo augmentation to enhance the model's robustness and generalization capabilities.
