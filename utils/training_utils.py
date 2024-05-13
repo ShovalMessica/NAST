@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from fairseq.data.audio.audio_utils import get_features_or_waveform
 
 
-def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss_tracking: List[torch.Tensor], ce_loss_stabilized: bool,
+def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss_tracking: List[torch.Tensor],
                                 config: Dict[str, Any]) -> Tuple[float, bool]:
     """
     Adjust the cross-entropy loss weight based on the stabilization threshold and increment factor.
@@ -15,22 +15,20 @@ def adjust_cross_entropy_weight(ce_loss_weight: float, ce_loss_tracking: List[to
     Args:
         ce_loss_weight (float): Cross-entropy loss weight.
         ce_loss_tracking (List[torch.Tensor]): List of cross-entropy loss values from the last 10 iterations.
-        ce_loss_stabilized (bool): Flag indicating if the cross-entropy loss has stabilized.
         config (Dict[str, Any]): Configuration dictionary.
 
     Returns:
-        Tuple[float, bool]: Updated cross-entropy loss weight and stabilization flag.
+        float: Updated cross-entropy loss weight.
     """
-    if not ce_loss_stabilized:
-        if len(ce_loss_tracking) >= 10:
-            max_loss = max(loss.item() for loss in ce_loss_tracking)
-            min_loss = min(loss.item() for loss in ce_loss_tracking)
-            if max_loss - min_loss < float(config['cross_entropy']['stabilization_threshold']):
-                ce_loss_stabilized = True
-            else:
-                ce_loss_weight = min(ce_loss_weight * config['cross_entropy']['weight_increment_factor'],
-                                     config['cross_entropy']['max_weight'])
-    return ce_loss_weight, ce_loss_stabilized
+    
+    if len(ce_loss_tracking) >= 10:
+        max_loss = max(loss.item() for loss in ce_loss_tracking)
+        min_loss = min(loss.item() for loss in ce_loss_tracking)
+        if max_loss - min_loss < float(config['cross_entropy']['stabilization_threshold']):
+            ce_loss_weight = min(ce_loss_weight * config['cross_entropy']['weight_increment_factor'],
+                                 config['cross_entropy']['max_weight'])
+    
+    return ce_loss_weight
 
 
 def synchronize_diversity_weight(diversity_weight: float, config: Dict[str, Any], one_hot_vectors: List[torch.Tensor], diversity_threshold: int) -> float:
