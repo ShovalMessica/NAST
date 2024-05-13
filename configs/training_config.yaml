@@ -40,7 +40,7 @@ phase2:
     cross_entropy: 0.005
 
 cross_entropy:
-  stabilization_threshold: 1e-4
+  stabilization_threshold: 2e-1
   weight_increment_factor: 1.1
   max_weight: 10.0
 
