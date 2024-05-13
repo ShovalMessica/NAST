@@ -73,7 +73,7 @@ You can download pretrained tokenization model from the list below:
 
 - **UED Calculator:** To evaluate the Unit Edit Distance for models trained with NAST, use our UED calculator. Detailed instructions and tools can be found [here](eval/readme.md#unit-edit-distance-ued-calculation).
 
-# Training
+### Training
 To train the tokenization model, execute the command below from the root directory:
 ```
 python train.py --training_config_path path/to/training/config --model_config_path path/to/model/config
@@ -83,9 +83,9 @@ python train.py --training_config_path path/to/training/config --model_config_pa
    - Losses Used: Only reconstruction and diversity losses are active.
    - Augmentations: Augmentations are applied with a probability of `p`, to expose the model to unclean speech in the first stages of unit formation.
 2. Phase II:
-  - Losses Used: All three losses, including cross-entropy, are active.
-  - Stabilization Mechanism: A stabilization mechanism from `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
-  - Augmentations: Augmentations are applied with a probability of 1, meaning all data will undergo augmentation to route the model into robustness capabilities.
+   - Losses Used: All three losses, including cross-entropy, are active.
+   - Stabilization Mechanism: A stabilization mechanism from `training_utils.py` is employed to ensure smooth integration of the cross-entropy loss.
+   - Augmentations: Augmentations are applied with a probability of 1, meaning all data will undergo augmentation to route the model into robustness capabilities.
 
 ## Unit Language Model (ULM)
 You can download pretrained unit language models from the list below, or follow the [instructions](https://github.com/facebookresearch/fairseq/tree/main/examples/textless_nlp/gslm/ulm) to train new models using fairseq. All language models were trained and evaluated on the deduplicated unit transcriptions of the respective NAST version.
