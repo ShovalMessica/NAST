@@ -1,6 +1,6 @@
 ## NAST: Noise Aware Speech Tokenization for Speech Language Models
 
-Official implementation of NAST: Noise Aware Speech Tokenization for Speech Language Models. <br><br>
+Official implementation of [NAST: Noise Aware Speech Tokenization for Speech Language Models](https://arxiv.org/abs/2406.11037), accepted at Interspeech 2024. <br><br>
 <p align="center">
   <img src="docs/diagram.png" alt="diagram" style="width:55%;height:auto;"/>
 </p>
