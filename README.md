@@ -97,3 +97,24 @@ You can download pretrained unit language models from the list below, or follow 
 | NAST + 50 units | [download](https://drive.google.com/file/d/1LssHxGpkpW2l8WbHTrAs7cVx3cILGz0B/view?usp=drive_link) |
 | NAST + 100 units | [download](https://drive.google.com/file/d/12PHHoKCInlb_LteYmkd1OI1WCx9iiedq/view?usp=drive_link) |
 | NAST + 200 units | [download](https://drive.google.com/file/d/19cBZkrgc7LT8xZT83WcKy0_c9jTDvZ8e/view?usp=drive_link) |
+
+## Usage Example
+```python
+import fairseq
+from fairseq import checkpoint_utils
+import torch
+
+ckpt_path = "path/to/ulm/checkpoint"
+dict_dir_path = "path/to/directory/" # dictionary file inside the directory should be named: dict.txt
+
+models, cfg, task = checkpoint_utils.load_model_ensemble_and_task(
+    [ckpt_path],
+    arg_overrides={'data': dict_dir_path}
+)
+models[0].eval()
+
+input = torch.tensor([[15, 4, 22, 9, 7, 34]], dtype=torch.long) 
+with torch.no_grad(): 
+    output = models[0](input)
+scores = models[0].get_normalized_probs(output, log_probs=True)
+```
